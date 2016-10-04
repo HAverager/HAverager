@@ -72,13 +72,13 @@ for m in range(nMes):
 	# Loop over data point
 	for d in range(nData):
 		if(Mdata[m][d]!=0):
-			f.write(str(d)+',')
-			f.write(str(round(Mdata[m][d],3))+',')		
-			f.write(str(round(Mstat[m][d]*Mdata[m][d],3)))	
+			f.write('%4.0f,'% d)
+			f.write('%8.3f,'% (Mdata[m][d]))		
+			f.write('%8.3f'% (Mstat[m][d]*Mdata[m][d]))	
 			# Loop over systematics
 			for s in range(nSyst):
 				if(Hsyst[m][0][s]!=0):
-					f.write(','+str(round(Msyst[m][d][s]*Mdata[m][d],3)))
+					f.write(',%8.3f'% (Msyst[m][d][s]*Mdata[m][d]))
 			f.write('\n')	
 	f.close()
 
@@ -109,11 +109,12 @@ for m in range(nMes):
 	for d in range(nData):
 		if(Mdata[m][d]!=0):
 			f.write('%4.0f '% d)
-			f.write('%8.2f '% Mdata[m][d])		
-			f.write('%8.3f '% Mstat[m][d]*Mdata[m][d])	
+			f.write('%8.3f '% Mdata[m][d])		
+			f.write('%8.3f '% (Mstat[m][d]*Mdata[m][d]))	
 			# Loop over systematics
 			for s in range(nSyst):
 				if(Hsyst[m][0][s]!=0):
-					f.write('%8.3f '% Msyst[m][d][s]*Mdata[m][d])
-			f.write('\n')	
+					f.write('%8.3f '% (Msyst[m][d][s]*Mdata[m][d]))
+			f.write('\n')
+	f.write('\n')
 	f.close()
