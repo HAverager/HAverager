@@ -5,10 +5,10 @@ make
 make install
 
 **Usage:**  
-cd ./bin  
-./HERAverager ../test/steering
+cd ./test/ 
+../bin/averager steering
 
 **Results**  
 The results are printed out in the screen and stored (in case of default steering) in the directory   
-./output
+./TOutF
 
