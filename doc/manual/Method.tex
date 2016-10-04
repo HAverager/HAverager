@@ -1,0 +1,354 @@
+\section{Combination method}
+\label{sec:combDetails}
+
+\subsection{Basic principal of the combination}
+\label{Sec:Basic}
+For a measurement $\mu$ with uncertainty $\Delta$, assuming a Gaussian shape of the uncertainty, the measurement can be considered as a probability distribution function for a ``true'' quantity $m$:
+\begin{equation}
+  P(m)=\frac{1}{\sqrt{2\pi \Delta}}\exp\left(-\frac{(m-\mu)^{2}}{2\Delta^{2}}\right)
+  \label{Eq:PDFMeas}
+\end{equation}
+This can be written as a $\chi^2$ function by taking $-2\log$ (constant term was skipped):
+\begin{equation}
+  \chi^{2}(m)=\frac{\left( m-\mu  \right)^{2}}{\Delta ^{2}}
+  \label{Eq:ChiSq1}
+\end{equation}
+
+Minimum of $\chi^2$ corresponds to $m=\mu$, while the change $\Delta \chi^2=1$ corresponds to $m=\mu \pm \Delta$. In case of two statistically independent measurements of the case quantity $m$: $\mu_1$, $\Delta_1$ and $\mu_2$, $\Delta_2$, the probability distribution function of $m$ is given by the  product of two:
+\begin{equation}
+P(m) \sim \exp \left( -\frac{(m-\mu_1)^2}{2\Delta_1^2} \right) 
+\exp\left( -\frac{(m-\mu_2)^2}{2\Delta_2^2} \right),
+\end{equation}
+which corresponds to $\chi^2$ that is given by the sum of the two: $\chi^2_{sum} = \chi^2_1 + \chi^2_2$.
+
+Since $\chi^2_{sum}$ is a positive definite quadratic form it can be re-written in the form of Eq.~\ref{Eq:ChiSq1}. In this case $\mu$ is replaced by average $\mu_{ave}$ and $\Delta$ is replaced by the error on this average:
+
+\begin{equation}
+  \chi^{2}(m)=\frac{ ( m-\mu_{ave} )^{2}}{\Delta^{2}_{ave}} + \chi^2_0,
+  \label{Eq:ChiSum}
+\end{equation}
+where the value of $\chi^2_0$ measures consistency of the measurements, $\chi^2/N_{DoF}\sim 1$ for consistent measurements.
+
+The value of $\mu_{ave}$ can be found by minimizing $\chi^2_{sum}$ with respect to $m$ (this leads to a usual averaging rule, $1/\Delta^2$ weights).
+
+
+Many experiments measures a number of independent quantities $\mu_i$ which correspond to the underlying physics values $m_i$ (e.g. cross-section measurement in bins of $p_{T,Z}$, where $i$ refers to a bin number). In this case the $\chi^2$ function is a simple sum over the
+measurements (bins):
+
+\begin{equation}
+  \chi^{2}_{exp}(m_i)= \sum_i \frac{ ( m_i-\mu_i )^{2}}{\Delta^{2}_i} + \chi^2_0,
+  \label{Eq:ChiExp}
+\end{equation}
+Where:
+\begin{itemize}
+\item $\mu_i$ - the measurement in the bin $i$
+\item $m_i$ ``truth'' value in the bin $i$~\footnote{Just to avoid confusion: ``truth'' here does not refers to MC-truth. This refers to a value, which we want to measure in experiment.}
+\item $\Delta_i$ statistical uncertainty in bin $i$
+\end{itemize}
+
+The systematic effects, which affects the measurement $\mu_i$, are often correlated across bins. Let's consider measurement binned in a certain variable, which is affected by up/down shift of certain parameter:
+\begin{equation}
+  \mu_i \to \mu_i + \Gamma_i^+, \; \; \mu_i \to \mu_i - \Gamma_i^-, 
+  \label{Eq:Systematics}
+\end{equation}
+where $\Gamma^{\pm}_i$ correspond to the variation up/down.
+
+If the correlated systematic uncertainty is approximately symmetric, one can symmetrize them. For presented analysis following way was used:
+\begin{equation}
+\Gamma_i = max(|\Gamma_i^+|, |\Gamma_i^-|) \frac{\Gamma_i^+}{|\Gamma_i^+|},
+  \label{Eq:Symmetrization}
+\end{equation}
+i.e. the size of the uncertainty is taken as maximal of up and down variations and the sign from one of the variations.
+
+The symmetrised correlated systematic uncertainties were included into the $\chi^2$ function.
+
+Systematic uncertainties, like energy scale, can be also viewed as a result of an experiment (e.g. measurement of the calibration): there is a ``true'' detector energy scale $\alpha$, measured detector calibration $\alpha_0$ and its statistical uncertainty $\Delta_{\alpha}$. Therefore, it is natural to add term
+\begin{equation}
+\chi^2_{syst}(\alpha) = \frac{(\alpha-\alpha_0)^2}{\Delta_{\alpha}^2}
+  \label{Eq:ChiSyst}
+\end{equation}
+to the $\chi^2$ function. The nuisance parameter $b$, defined as  $b=(\alpha-\alpha_0)/\Delta_{\alpha}$ corresponds to a coherent change of measurements $\mu_i \to \mu_i + b\Gamma_i$. This defines the combined $\chi^2$ function:
+
+\begin{equation}
+  \chi^2(\vec{m},\vec{b})_{exp} = \sum_{i} \frac{(m_i-\mu_i-\sum_j \Gamma_i^j b_j)^2}{\Delta_i^2} + \sum_{j}
+  b_j^2,
+  \label{Eq:CorrChiSq}
+\end{equation}
+where
+\begin{itemize}
+\item $\vec{b}$ defines a vector of nuisance parameters $b_j$ corresponding to each source of systematic uncertainty,
+\item summation over $i$ runs over all data points, and summation over $j$ runs over all correlated sources of systematic uncertainty,
+\item $\Gamma_i^j$ is the absolute correlated systematic uncertainty, 
+\item $\Delta_i$ is the uncorrelated (statistical) uncertainty.
+\end{itemize}
+With this definition minimum $\chi^2$ is obtained for all $m_i = \mu_1$ and $b_j=0$. If $b_j=0$ for all $j$ except $j=k$, $b_k=1$, then $\chi^2$ minimum is archived at $m_i = \mu_i + \Gamma_i^k$ and it is equal to 1.
+
+Total uncertainty for a parameter $m_i$ defined by $\Delta \chi^2_{exp} = 1$ rule corresponds to the sum of correlated and uncorrelated uncertainties in quadrature: $\Delta^2_{i, tot} = \Delta^2_i + \sum (\Gamma^j_i)^2$.
+
+\subsection{$\chi^2$ minimization}
+\label{Sec:minimization}
+Average of two data sets with systematic uncertainties follows the same ideas as for average of uncorrelated measurements: represent the sum of two $\chi^2$ by a single $\chi^2$:
+\begin{equation}
+  \chi^2(\vec{m_1},\vec{b_1})_{exp,1} + \chi^2(\vec{m_2},\vec{b_2})_{exp,2} =
+  \chi^2_0 + \chi^2(\vec{m_{ave}},\vec{b'_{ave}}).
+\end{equation}
+The dimension of $\vec{m_{ave}}$ is equal to dimension of union set of $\vec{m_1}$ and $\vec{m_2}$. e.g. if both experiments measure for the same binning, $N_{M1} = N_{M2} = N_{M,ave} = N_M$. Similarly, for the systematic uncertainties $N_{S,ave} = N_{S1} + N_{S2} - N_{S, common} = N_S$, where $N_{S, common}$ is the number of common systematic error sources for the two measurements.
+
+More explicitly, the sum of two $\chi^2$:
+\begin{equation}
+  \chi^2(\vec{m},\vec{b})_{sum} = \sum_e \sum_{i}^{N_M} \frac{ \left(m_i-\mu_{i,e}-\sum_j^{N_S} \Gamma_{i,e}^j b_j \right)^2}{\Delta_{i,e}^2} W_{i,e} + \sum_{j}^{N_S} b_j^2,
+  \label{Eq:Chi2SumExp2}
+\end{equation}
+where,
+\begin{itemize}
+\item $i$ runs over all measured points $N_M$
+\item $j$ runs over all sources of systematic uncertainties $N_S$
+\item symbol $W_{i,e}$ is equal to 1 if data set $e$ contributes to a measurement at the point $i$, otherwise it is 0.
+\item $\Gamma^i_{j,e}$ equals to 0 if the measurement $i$ from the data set $e$ is insensitive to the systematic source $j$.
+\end{itemize}
+This definition of $\chi^2$ assumes that the data sets $e$ are statistically uncorrelated. The systematic error sources $b_j$, however, may be either uncorrelated (separate sources) or correlated across data sets (different data sets sharing a common source).
+
+Since $\chi^2_{sum}$ is a quadratic form of $\vec{m}$ and $\vec{b}$, it may be rearranged such that it takes a form similar to Eq.~\ref{Eq:ChiSum}.
+\begin{eqnarray}
+  \chi^2(\vec{m},\vec{b}) = \chi^2_{min}  + \sum_{i}^{N_{M,ave}} \frac{ \left(m_i-\mu_{i,ave}-\sum_j^{N_{S,ave}} \Gamma_{i,ave}^j (\alpha_j-\alpha_{j,ave}) \right)^2}{\Delta_{i,ave}^2} + \nonumber \\
++ \sum_{j}^{N_{S,ave}} \sum_{k}^{N_{S,ave}} (\alpha_j-\alpha_{j,ave})(\alpha_k-\alpha_{k,ave})(A_S')_{ik},
+  \label{Eq:ChiBefore}
+\end{eqnarray}
+where
+\begin{itemize}
+\item $\mu_{i,ave}$ are average values of measured quantities
+\item $\Delta_{i,ave}$ are their uncorrelated uncertainties
+\end{itemize}
+
+The values of $\alpha_{j, ave}$, $\Delta_{i,ave}$, $\mu_{i,ave}$ and matrix $A_{S}'$ are determined by minimization of $\chi^2$ function in Eq.~\ref{Eq:Chi2SumExp2} with respect to $m_i$ and $b_j$. The minimum of Eq.~\ref{Eq:Chi2SumExp2} is found by solving a system of linear equations obtained by requiring $\partial \chi^2 / \partial m_i = 0$ and $\partial \chi^2 / \partial b_j = 0$ which can be written in matrix form
+\begin{equation}
+\begin{pmatrix}
+A_M & A_{SM} \\
+(A_{SM})^T & A_S \\
+\end{pmatrix}
+\begin{pmatrix}
+M_{ave} \\
+B_{ave} \\
+\end{pmatrix}
+=
+\begin{pmatrix}
+C_M \\
+C_S \\
+\end{pmatrix}
+\label{Eq:MatrixEQ}
+\end{equation}
+where
+\begin{itemize}
+\item vector $M_{ave}$ corresponds to all measurements
+\item vector $B_{ave}$ corresponds to all sources of the systematic uncertainties
+\item matrix $A_M$ has a diagonal structure with $N_{M,ave}$ diagonal elements $A_{M}^{ii} = \sum_e \frac{W_{i,e}}{\Delta^2_{i,e}}$
+\item $A_{SM}^{ij} = - \sum_e \frac{\Gamma^j_{i,e}}{\Delta^2{i,e}} W_{i,e}$
+\item $A_S^{ij} = \delta_{ij} + \sum_e \sum_k^{N_M} 
+\frac{ \Gamma^k_{i,e} \Gamma^k_{j,e}}{\Delta^2_{k,e}} W_{k,e}$
+\item $C_M^i = \sum_e \frac{\mu^i_e}{\Delta^2_{i,e}} W_{i,e} $
+\item $C_S^j = -\sum_e \sum_k^{N_M} \frac{\mu^k_e \Gamma^k_{j,e}}{\Delta^2_{k,e}} W_{k,e}$
+\end{itemize}
+Here $\delta_{ij}$ is the Kronecker symbol. The matrix $A_{SM}$ has dimension $N_M \times N_S$ while the matrix $A_S$ is quadratic with $N_S \times N_S$ elements.
+
+Using the method of the Schur complement, the solution is found as:
+\begin{eqnarray}
+A_S' = A_S - (A_{SM})^T A_M^{-1} A_{SM} \nonumber  \\
+B_{ave} = (A_S')^{-1} (C_S - (A_{SM})^T A_M^{-1} C_M) \nonumber  \\
+M_{ave} = A_M^{-1} (C_M - A_{SM} B_{ave})
+\end{eqnarray}
+Given the components of the vector $B_{ave}$,  $\beta_{j, ave} = \alpha_{j,ave}/\Delta_{\alpha_j}$, the solution for $\mu_{i, ave}$ can be written in explicit form:
+\begin{equation}
+\mu_{i, ave} = \frac{\sum_e \left(\mu_{i,e} + \sum_j \Gamma^i_{j,e} \beta_{j,ave} \right)
+\frac{W_{i,e}}{\Delta^2{i,e}} }{\sum_e \frac{W_{i,e}}{\Delta^2_{i,e}}}
+\label{Eq:AveMu}
+\end{equation}
+The uncorrelated uncertainty squared is determined by the inverse of the elements of the diagonal matrix $A_M$:
+\begin{equation}
+\Delta^2_{i,ave} = \frac{1}{\sum_e \frac{W_{i,e}}{\Delta^2_{i,e}}}
+\label{Eq:AveDelta}
+\end{equation}
+
+Eq.~\ref{Eq:AveMu} and \ref{Eq:AveDelta} reproduce the standard formula for a statistically weighted average of several uncorrelated measurements when all shifts of the systematic error sources are set to zero. The values of $\beta_{i, ave}$ in Eq.~\ref{Eq:AveMu} show, how the combined measurements $\mu_{i, ave}$ are shifted, compared to initial measurements $\mu_{i,e}$ in terms of systematic uncertainties $\Gamma^j_{i,e}$.
+
+The non-diagonal nature of the matrix $A_S'$ expresses the fact that the original sources of the systematic uncertainties are correlated with each other after averaging. The matrix $A_S'$ can be decomposed to re-express Eq.~\ref{Eq:CorrChiSq} in terms of diagonalised sources of systematic uncertainties:
+\begin{equation}
+DD = UA_S' U^{-1} \; \; \; \Gamma_{ave} = A_{SM} A_M^{-1} D^{-1} U^{-1}
+\label{Eq:Diag}
+\end{equation}
+Here $U$ is an orthogonal matrix composed of the eigenvectors of $A_S'$, $D$ is a diagonal matrix with corresponding square roots of eigenvalues as diagonal elements and $\Gamma_{ave}$ represents the sensitivity of the average result to these new sources. Its elements are the $\Gamma_{i,ave}^j$.
+
+After diagonalizability of matrix $A_S'$, $\chi^2$ function in Eq.~\ref{Eq:ChiBefore} can be re-written in form, similar to Eq.~\ref{Eq:CorrChiSq}:
+
+\begin{equation}
+  \chi^2(\vec{m},\vec{b'})_{tot} = \chi^2_{min} + 
+  \sum_{i}^{N_M} \frac{(m_i-\mu_{i,ave}-\sum_j^{N_S} \Gamma_{i,ave}^j b_j')^2}{\Delta_{i,ave}^2} + \sum_{j}^{N_S}  (b_j')^2,
+\label{Eq:ChiAfter}
+\end{equation}
+where $b'_j = \sum_k U_{jk}(b_k - \beta_{k,ave})D_{jj}$.
+
+The orthogonal matrix $U$ connecting the systematic sources before and after averaging with Eq.~\ref{Eq:Diag}. Diagonal elements of matrix $D$ shows, how the uncertainties of combined measurement $\Gamma^j_{i,ave}$ are reduced, compared to initial systematic uncertainties.
+
+The value of $\chi^2_{min}$ corresponds to the minimum of Eq.~\ref{Eq:Chi2SumExp2} and calculated using values of $\mu_{i, ave}$ and $\beta_{j, ave}$ as a parameters $\vec{m}$ and $\vec{b}$. The ratio $\chi^2_{min}/N_{DoF}$ is a measure of the consistency of the
+data sets. The number of degrees of freedom, $N_{DoF}$, is calculated as the difference between the total number of measurements and the number of the measured points $N_M$. It is useful to note, the definition of $\chi^2_{min}$ have two contributions, one is a usual shift if the measurement weighted with uncorrelated uncertainties (comes from $\mu_{i, ave} - \mu_{i,e}$). Another contribution comes from correlated uncertainty term. %This procedure represents a method to average data sets, which allows correlations among the measurements due to systematic uncertainties to be taken into account.
+
+Another interesting parameter, which shown the compatibility of channels is pull of the central values:
+\begin{equation}
+p^{i,e} = \frac{\mu^{i,e} - \mu^{i,ave}(1 - \sum_j\gamma_{i,e}^j\beta_{j,ave})}{\sqrt{\Delta^2_{i,e}-\Delta^2_{i,ave} } },
+\label{Eq:Pulls}
+\end{equation}
+where $\gamma^j_{i,e} = \Gamma^j_{i,e} / \mu_{i,ave}$. This definition is similar to the $\chi^2$ definition, but not summed over bins. These pulls show how the average measurement are shifted compare to individual measurement and also have two contributions, similar to $\chi^2$.
+
+The values, which reflect only correlated part are the shifts $\beta$. If the systematic uncertainties for measurement have rather similar size, than average fluctuation of shifts will reflect the correlated contribution to $\chi^2$ compatibility. However we can always add such uncertainties to analysis, which will be not shifted after combination and therefore will just make smaller average fluctuation of shifts. Large shifts indicates, that corresponding central value of the systematic uncertainties were initially not correctly estimated (and therefore shifted during the combination).
+
+The values coming out of matrix $D$ show, how much the initial systematic uncertainties were reduced due to the combination. This parameter does not directly related to the channel compatibility, but show how much we gain out of the combination. 
+
+The pull for systematic uncertainties can be defined as:
+\begin{equation}
+p^{i} = \frac{\beta_{i,ave}}{\sqrt{1 - D_{ii}^2} }.
+\label{Eq:PullSyst}
+\end{equation}
+This value shown, how significant was the systematic shifted due to the combination. The large systematic pull suggests, that systematic uncertainty was not correctly estimated.
+
+\subsection{Covariance matrix representation of the systematic uncertainties}
+\label{sec:decomposition}
+Another way representing bin-to-bin (point-to-point) correlations is by using a covariance matrix $C$:
+\begin{equation}
+\chi^2(\vec{m}) = \sum_{ik}^{N_M} (m_i-\mu_i)^T C_{ik}^{-1} (m_k-\mu_k), \; 
+C_{ik} = \sum_{j}^{N_S}\Gamma^j_i \Gamma^j_k,
+\label{Eq:ChiCovar}
+\end{equation}
+where $N_M$ is a number of bins and $N_S$ is a number of cources of the systematic uncertainties. For Gaussian uncertainties covariance matrix and nuisance parameter representations are equivalent.
+
+Matrix $C$ can be written as:
+\begin{equation}
+C_{ik} = \sum_{lj}^{N_M} G^{-1}_{il} D_{lj} G_{jk},
+\label{Eq:Decomposition}
+\end{equation}
+where columns of $G^{-1}$ are made of eigenvectors of $C$, sorted by eigenvalues (largest to smallest) and $D$ is a diagonal matrix made of the eigenvalues of $C$.
+
+Since $C$ is positively defined, the eigenvalues are real and grater zero and we can assume $G' = \sqrt{D}G$. Also $G^{-1} = G^T$, since $G$ is the orthogonal and then
+ \begin{equation}
+C_{ik} = \sum_{j}^{N_M} G_{ij}^{'T} G_{jk}'.
+\end{equation}
+
+The contribution of eigenvectors with small eigenvalues can be neglected by truncating the sum after $N_S' < N_S$.
+\begin{equation}
+C_{ik} \approx C'_{ik} = \delta_{ik}\Delta^2_{i, uncorr} + \sum_{j=1}^{N_S'} G'^T_{ij}G'_{jk}, \;\;
+\Delta^2_{i, uncorr} = \sum_{j=N_S'+1}^{N_M} (G'_{ij})^2.
+\end{equation}
+Here $\delta_{ik}$ is the Kronecker symbol and  $\Delta_{i, uncorr}$ is uncorrelated systematic uncertainty. To preserve the total uncertainty, $\Delta_{i, uncorr}$ are chosen such, that diagonal elements in $C'$ are equal to the diagonal elements in $C$. The dimension $N_M$ of covariance matrix $C'$ is not reduced by this approximation. 
+
+The reduced summation allows for more compact representation using nuisance parameters. The 
+$\chi^2$ function takes form:
+\begin{equation}
+  \chi^2(\vec{m},\vec{b})_{exp} = \sum_{i} \frac{(m_i-\mu_i-\sum_j \Gamma_i^j b_j)^2}{\Delta_{i, stat}^2 + \Delta_{i, uncorr}^2} + \sum_{j}
+  b_j^2,
+  \label{Eq:CorrChiSq2}
+\end{equation}
+
+
+\subsection{Bias correction for multiplicative uncertainties}
+\label{Sec:MultBias}
+Many of the systematic uncertainties for the data measurements, correlated and uncorrelated are multiplicative, e.g. they are proportional to the measured values.
+
+Consider two measurements $\mu_1$ and $\mu_2$ of $m$. Let's assume, that $\mu_1 = m + mb$, $\mu_2 = m-mb$. Both measurements are performed with the same relative uncertainty $\delta$. An error weighted average of the two measurements returns
+
+\begin{equation}
+  \mu_{ave} = m \frac{1-b^2}{1+b^2},
+  \label{Eq:ErrorAverage}
+\end{equation}
+which for $b=5\%$ corresponds to 0.5\% bias.
+
+The bias occurs because the measurement at smaller value $\mu_2$ got smaller absolute uncertainty $\delta(m-mb)$.
+
+Measurements with multiplicative uncertainties can be combined bias-free using
+expected values $m_i$ instead of measured $\mu_i$ to translate relative to absolute uncertainties. In this case Eq.~\ref{Eq:CorrChiSq} takes form:
+
+\begin{equation}
+  \chi^2(\vec{m},\vec{b})_{exp,mult} = \sum_{i} \left(\frac{m_i[1-\sum_j \gamma_i^jb_j]  - \mu_i}{\delta_{i}m_i}\right)^2 + \sum_{j}  b_j^2,
+  \label{Eq:StatCorrChiSq2}
+\end{equation}
+
+\subsection{Bias correction for statistical uncertainties}
+\label{Sec:StatBias}
+Let's consider the counting of number of arbitrary events. Two measurements $\mu_1$ and $\mu_2$ gives $\mu_1 = N_1$, $\mu_2 = N_2$. Statistical uncertainties of the measurement are estimated as a square root of number of counts. Weighted average for these measurement returns:
+
+\begin{equation}
+  \mu_{ave} = \frac{2N_1N_2}{N_1+N_2},
+\end{equation}
+
+instead of 
+
+\begin{equation}
+  \mu_{ave} = \frac{N_1 + N_2}{2}
+\end{equation}
+
+Bias for statistical average can removed by using expected instead of measured number of events. If statistical uncertainty for a measurement is quoted based on square root of number of measured events, then estimated unbiased relative statistical uncertainty $\delta_{stat,cor} = \frac{\sqrt{m}}{\mu} = \delta_{stat} \sqrt{\frac{m}{\mu}} $. Absolute unbiased statistical uncertainty can be expressed as:
+
+\begin{equation}
+ \Delta_{stat,cor} = \delta_{stat} \sqrt{m\mu}
+  \label{Eq:StatCorr}
+\end{equation}
+
+Finally, the number of observed events can be modified by the correlated systematic uncertainties. This modification can be taken into account by using 
+\begin{equation}
+  m(1-\sum_j \gamma^jb_j)
+  \label{Eq:StatCorr2}
+\end{equation}
+instead of $m$ in Eq.~\ref{Eq:StatCorr}. This brings us to the $\chi^2$  formula:
+
+\begin{equation}
+  \chi^2(\vec{m},\vec{b})_{exp,cor} = \sum_{i} \frac{(m_i[1-\sum_j \gamma_i^jb_j]  - \mu_i)^2}{\delta_{i, stat}^2\mu_im_i[1-\sum_j \gamma_i^jb_j] + \delta_{i, uncorr}^2m_i^2} + \sum_{j}
+  b_j^2,
+  \label{Eq:StatCorrChiSq2}
+\end{equation}
+
+
+\subsection{Treatment of off-set systematic uncertainties}
+\label{Sec:offset}
+
+Let's consider a source of systematic uncertainty on a certain measurement (so called off-set systematics), which does not have any contribution to the $\chi^2$ and therefore does not have any impact on the average value. Systematic uncertainty on the combined value due to this source ($\delta^{off-set}_{ave}$) can be calculated as: 
+
+ \begin{equation}
+  \delta^{off-set}_{ave} = \frac{\mu_{ave}^{up} - \mu_{ave}^{down}}{\mu_{ave}},
+\end{equation}
+where $\mu_{ave}^{up/down}$ the average value of the measurements $e$, shifted by considered off-set systematics $\mu_e \pm \delta^{off-set}$. Therefore in case of $N_o$ sources of the off-set systematics combination procedure performs $2N_o+1$ times: one nominal combination, $N_o$ ``up'' and $N_o$ ``down'' combinations for each sources of the off-set systematic respectively.
+
+
+\subsection{Treatment of asymmetric systematic uncertainties}
+\label{Sec:AsymmUncert}
+
+In case if assumption of the symmetric systematic uncertainty (expressed by Eq.\ref{Eq:Symmetrization}) is not valid for performed measurement, the $\chi^2$ Eq.~\ref{Eq:CorrChiSq} can be written in more general form:
+
+\begin{equation}
+  \chi^2(\vec{m},\vec{b})_{exp} = \sum_{i} \frac{(m_i-\mu_i-\sum_j f_i(b_j))^2}{\Delta_i^2} + \sum_{j} b_j^2.
+  \label{Eq:CorrChiSq3}
+\end{equation}
+If $f_i(b_j) = \Gamma_i^jb_j$,  Eq.~\ref{Eq:CorrChiSq3} again back to Eq.~\ref{Eq:CorrChiSq}. Asymmetric systematic uncertainties can be approximated as:
+
+\begin{equation}
+f_i(b_j) = \Gamma_i^jb_j + \omega_i^jb_j^2, \; \omega_i = \frac{\Gamma_i^{j+} + \Gamma_i^{j-}}{2}.
+  \label{Eq:AsymmUnc}
+\end{equation}
+$\chi^2$ definition in this case become non-linear. Instead of simple minimization procedure described in Sec.~\ref{Sec:minimization}, iterative minimization procedure, shown in Sec.~\ref{Sec:MinimizeBias} is used. 
+
+\subsection{Different representation of combined uncertainties}
+\label{Sec:SystRepresentation}
+
+The systematic uncertainties of the averaged values are presented in orthogonal way (in terms of diagonalised sources of systematic uncertainties) by $\Gamma_{ave}$ (see Eq.\ref{Eq:Diag}). However in this representation each sources of the systematic uncertainty $\Gamma_{ave}^j$ is a linear combination of the initial sources of the systematic uncertainties $\Gamma^j$.  
+
+In order to be able to compare systematic uncertainties of the combined measurement with $\Gamma^j$ source by source, diagonal elements of matrix $A_S'$ can be taken as it is (without diagonalisation). However in this case systematic uncertainties of the combined measurement will be not orthogonal and their quadratic sum will not give a total systematic uncertainty.
+
+Alternative way is to use half-diagonal form of matrix $A_S'$. In this case systematic uncertainties of the combined measurement are orthogonal, however one of the course corresponds to one of the sources on the initial systematic uncertainties $\Gamma^j$. 
+
+
+\subsection{Combination with bias corrections}
+\label{Sec:MinimizeBias}
+
+For most practical situations the bias, described in Sec.~\ref{Sec:MultBias} and \ref{Sec:StatBias} of the average is small. Therefore, the expectation $m_i$ can be estimated in an iterative procedure starting from linear formula Eq.~\ref{Eq:CorrChiSq} and using $m_i = \mu_{i,ave}$. The key for the unbiased result is that the same expectation is used for all measurements. In most cases the convergence is observed after second iteration.
+
+Similar iterative approach is applied to combine the measurements with asymmetric systematics uncertainties, introduces in Sec.~\ref{Sec:AsymmUncert}. The first iteration is performed with linearised $\chi^2$ Eq.\ref{Eq:CorrChiSq} using symmetrised uncertainties $\Gamma$ (linear part of $f(b_j)$). The next iterations are performed with corrected uncertainties $\Gamma' = \Gamma + \omega*\beta_{ave}$, e.g. correction depends on the systematic shift. The combination procedure require several iterations.
+
+Described bias corrections and correction of the systematic uncertainties are not interfere with each other and therefore both are applied in simultaneously. E.g. at each iterations both bias corrections and correction for non-symmetric uncertainties are applied. 
+
+Iterative averaging with bias correction and only symmetrical uncertainties converging fast and requires 2--3 iterations. Presence of asymmetric uncertainties make convergence worse. In some cases iterative procedure will not converge at all. In order to monitor convergence of the iterative procedure systematic shifts $\beta_{ave}$ for each iteration have to be considered.

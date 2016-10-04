@@ -1,0 +1,22 @@
+\section{Introduction}
+
+If two ore more measurements of the same physics quantity are statistically independent they can be combined to an average measurement. When these measurements have only one uncertainty and no information about correlation is known weighted-average algorithm can be used to calculated average value. However in many cases measurements are binned and performed with several sources of the correlated and uncorrelated systematic uncertainties. Presented package is designed in order to study the compatibility and perform bias-free combination of these measurements.
+
+The combination procedure is based on the $\chi^2$ minimization. This package was originally developed for combination of two data sets of the H1 data~\cite{H1Comb} and then used for combination of data from two HERA experiments: H1 and ZEUS~\cite{HERAComb}. Currently this package is widely used for combination of LHC data.
+
+Following types of the data-uncertainties are considered in presented tool:
+\begin{itemize}
+\item Statistical uncertainties. Usually based on square root of number of measured events. Uncorrelated between data sets and between bins.
+\item Systematic uncertainties uncorrelated between bins. Can be correlated or uncorrelated between data sets.
+\item Bin-to-bin correlated systematic uncertainties. Can be correlated or uncorrelated between data sets.
+\begin{itemize}
+\item Additive: not proportional to the measured values.
+\item Multiplicative: proportional to the measured values.
+\item Off-set: does not have any contribution to the $\chi^2$ and therefore does not have any impact on the average value.
+\end{itemize}
+\end{itemize}
+Tool support asymmetric uncertainties.
+ 
+This manual describe a linear $\chi^2$ definitions (see Sec.~\ref{Sec:Basic}) and explains the basic liner-algebra manipulations in Sec.~\ref{Sec:minimization}, which stays behind the combination procedure. Several different biases are discussed in Secs.~\ref{Sec:MultBias}--\ref{Sec:StatBias}. Bias-correction procedure introduces non-linear $\chi^2$, which minimized using linear approximation and iterative procedure is shown in Sec.~\ref{Sec:MinimizeBias}.
+
+User manual describes the installation procedure (Sec.~\ref{Sec:Install}) and code description (Sec.~\ref{Sec:Code}). The input and output of the combination are discussed in Secs.~\ref{Sec:Input} and \ref{Sec:Output} respectively.

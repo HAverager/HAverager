@@ -1,0 +1,17 @@
+\section{Examples}
+
+An example of the input information can be found in folder {\tt test} and consist of following files:
+
+\begin{itemize}
+\item {\tt steering} - steering file
+\item {\tt grid.dat} - grid file
+\item {\tt elz.dat} - data file
+\item {\tt elzFwd.dat} - data file
+\item {\tt muz.dat} - data file
+\end{itemize}
+
+In this example data from 3 data-files are combined using grid from file.  2-dimensional grid (name of dimensions: 'Bla' and 'Y') contains 8 points in total for reaction: 'NC'. The dimension 'Bla' is a dummy dimension (only one bin with bin-center 0.0). Only one reaction is considered in this example. Bin-centers in some of the data files are not coincide with one described in the grid file. Following to the option in the steering weighted average of these bins will be used for combination.
+
+All described uncertainties are multiplicative. Two iterations are used to correct for bias in statistical uncertainties.
+
+The output of the combination is stored in folder {\tt output} using orthogonal representation of the systematic uncertainties. The output prefix {\tt HZComb} is used for files: {\tt HZComb.dat} and {\tt HZComb101.dat}

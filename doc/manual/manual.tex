@@ -1,0 +1,90 @@
+\RequirePackage{lineno} 
+\documentclass[11pt,twoside,a4paper]{article}
+\usepackage{graphicx,epsfig}
+\usepackage{hhline}
+\usepackage{booktabs}
+
+\usepackage{amsmath,amssymb}
+\usepackage{times}
+\usepackage[varg]{txfonts}
+\DeclareMathAlphabet{\mathbold}{OML}{txr}{b}{it}
+
+\usepackage{array,multirow,dcolumn}
+%\usepackage[mathlines,displaymath]{lineno}
+\usepackage{rotating}
+
+\usepackage[hypertexnames,setpagesize,%
+    pdftex,%
+    colorlinks,%
+    citecolor=blue,%
+    hyperindex,%
+    plainpages=false,%
+    bookmarksopen,%
+    bookmarksnumbered%
+  ]{hyperref}
+
+% --- DO NOT remove this line:
+\providecommand\texorpdfstring[2]{#1}
+
+% we use natbib instead of cite to work with hyperref
+%\usepackage{cite}
+\usepackage[numbers,square,comma,sort&compress]{natbib}
+%\usepackage{hypernat}
+\usepackage{textcomp}
+
+%\bibliographystyle{unsrt}
+\bibliographystyle{writeup}
+\renewcommand{\topfraction}{1.0}
+\renewcommand{\bottomfraction}{1.0}
+\renewcommand{\textfraction}{0.0}
+
+% \renewcommand{\arraystretch}{1.2}
+\newlength{\dinwidth}
+\newlength{\dinmargin}
+\setlength{\dinwidth}{21.0cm}
+\textheight24cm \textwidth16.0cm
+\setlength{\dinmargin}{\dinwidth}
+\setlength{\unitlength}{1mm}
+\addtolength{\dinmargin}{-\textwidth}
+\setlength{\dinmargin}{0.5\dinmargin}
+\oddsidemargin -1.0in
+\addtolength{\oddsidemargin}{\dinmargin}
+\setlength{\evensidemargin}{\oddsidemargin}
+\setlength{\marginparwidth}{0.9\dinmargin}
+\marginparsep 8pt \marginparpush 5pt
+\topmargin -42pt
+\headheight 12pt
+\headsep 30pt \footskip 32pt
+\parskip 3mm plus 2mm minus 2mm
+
+\include{latex-defs}
+
+\title{ \vspace{1cm} {\Huge Heraverager } \\
+              Data combination package  \\ 
+              \vspace{0.5cm}
+\includegraphics[width=0.25\linewidth]{figures/logo.jpg}}
+\author{Heraverager developers}
+\begin{document}
+\maketitle
+\vspace{4cm}
+\begin{abstract}
+\vspace{0.5cm}
+The presented stand-alone tool is designed to combine the data of the measurements. The combination process is based on the $\chi^2$ minimization with respect of the correlation model, assigned to uncertainties of the data points. The program performs a study of behaviour of the data-point uncertainties and tests the compatibility of the measurements. The package is available for downloads on the web-site {\tt https://wiki-zeuthen.desy.de/HERAverager}
+\end{abstract}
+\thispagestyle{empty}
+\newpage
+\tableofcontents
+\linenumbers
+\newpage
+
+
+\include{Introduction}  
+\include{Method}
+\include{Program}
+\include{Examples}
+\include{Python}
+
+\include{Bibliography}
+
+\end{document}
+
