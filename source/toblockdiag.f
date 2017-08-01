@@ -42,12 +42,13 @@ C
 C
 C Invert box matrix corresponding in order to get systematic uncertainties:
 C
-
-      if (iItr.ne.NIteration) then
+      if (NSYSTOT.ne.0) then
+        if (iItr.ne.NIteration) then
 C Solve without inversion (faster):
-         Call DEQN(nsystot,box,nsystmax,work,ifail,1,last(NDiag+1))
-      else
-         Call DEQINV(nsystot,box,nsystmax,work,ifail,1,last(NDiag+1))
+          Call DEQN(nsystot,box,nsystmax,work,ifail,1,last(NDiag+1))
+        else
+          Call DEQINV(nsystot,box,nsystmax,work,ifail,1,last(NDiag+1))
+        endif
       endif
 
       if (IFail.ne.0) then
@@ -274,8 +275,9 @@ C for a single dataset
 
 
 C Invert box to get variance matrix:
-      Call DINV(nsystot,box,nsystmax,work,ifail)
-
+      if (NSYSTOT.ne.0) then
+        Call DINV(nsystot,box,nsystmax,work,ifail)
+      endif
 C     Print variance matrix
       Call PrintMatrix(box)
 
@@ -369,7 +371,9 @@ C Starting with last source, up to the first:
             enddo
          enddo
 
-         Call MyDSYEVD(k,RR,NSysTot,C,ifail)
+        if (NSYSTOT.ne.0) then
+          Call MyDSYEVD(k,RR,NSysTot,C,ifail)
+        endif
 C rotate rotation matrix:
 
          do i=1,k
