@@ -48,7 +48,7 @@ C
                scal = 1.0
             endif
 
-C            print *,f2new,f2orig,f2newSys,scal
+            print *,f2new,f2orig,f2newSys,scal
 
 C New error:
             if (RescaleStatSep.or.FixStat) then

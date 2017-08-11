@@ -324,13 +324,19 @@ C
                Corr2(isys1,if2) = Corr2(isys1,if2) +
      $              Corr(isys,if2)*Box(isys,isys1)
             enddo
+            SystDiag(isys1,if2) = 
+     $           Corr2(isys1,if2)/diag(if2)
+
             SystDiagPercent(isys1,if2) = 
-     $           -100.D0*Corr2(isys1,if2)/diag(if2)
+     $           -100.D0*SystDiag(isys1,if2)
      $           /f2vave(if2)
 
-            SystOrigPercent(isys1,if2) = -100.*CORR(isys1,if2)/DIAG(if2)
+            SystOrig(isys1,if2) = CORR(isys1,if2)/DIAG(if2)
      $           *ErrSyst(isys1)
-     $           /f2vave(if2)       
+
+            SystOrigPercent(isys1,if2) = -100.*SystOrig(isys1,if2)
+     $           /f2vave(if2)  
+     
 
          enddo
       enddo

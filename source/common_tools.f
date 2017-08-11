@@ -468,13 +468,12 @@ C-----------------------------------------------------------------------------
 !>    Recalculate central values to estimate given offset systematics
 !>    Do nothing is case of nominal
 C-----------------------------------------------------------------------------
-      Subroutine ActivateSystematic(i)
+      Subroutine ActivateOffsetSystematic(i)
         implicit none
         include 'common.inc'
 
         integer i
         integer iSyst, iP, idata
-        print *,"Activate",NSYSOTOT
 C     Loop over offset systeatics
         do iSyst=1,NSYSOTOT
 
@@ -524,20 +523,123 @@ C                  print *,SYSTABOOrig(iSyst,ip,idata,1)
 
         enddo
 
+      end
+
+
+C-----------------------------------------------------------------------------
+!>    Recalculate central values to estimate impact of given systematics
+C-----------------------------------------------------------------------------
+      Subroutine ActivateSystematic(i)
+        implicit none
+        include 'common.inc'
+
+        integer i
+        integer iSyst, iP, idata
+C     Loop over offset systeatics
+        do iSyst=1,NSYSTOT
+
+C     Do Shift Up
+          if(((2*iSyst)-1) .eq. i)then
+            print *,"Do variation Up for ",SystematicName(iSyst)
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
-C                  print *,ip,idata,F2TAB(ip,idata),F2TABOrig(ip,idata)
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata)
+C     Asymmetric case
+                if(ShiftType(iSyst,ip,idata) .eq. 2) then
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &             SYSTABOrig(iSyst,ip,idata,2)
+C     Symmetric case
+                else
+                  print *,ip,idata,iSyst,SYSTABOrig(iSyst,ip,idata,1)
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &               SYSTABOrig(iSyst,ip,idata,1)
+                endif
               enddo
             enddo
+            return
+          endif
 
-        print *,"Do nominal average "
+C     Do Shift Down
+          if((2*iSyst) .eq. i)then
+            print *,"Do variation Down for ",SystematicName(iSyst)
+C     Loop over all point and measurements
+            do iP=1,NMeas
+              do idata=1,NMeasF2(iP)
+C     Asymmetric case
+                if(ShiftType(iSyst,ip,idata) .eq. 2) then
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &             SYSTABOrig(iSyst,ip,idata,3)
+C     Symmetric case
+                else
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) -
+     &               SYSTABOrig(iSyst,ip,idata,1)
+                endif
+
+              enddo
+            enddo
+            return
+          endif
+
+        enddo
+
+      end
+
+
+C-----------------------------------------------------------------------------
+!>    Recalculate central values to run stat. ToyMC
+C-----------------------------------------------------------------------------
+      Subroutine ActivateStatToyMC(i)
+        implicit none
+        include 'common.inc'
+        EXTERNAL RANLUX
+
+
+        integer i
+        integer N, iP, idata, ierr
+        real amu, E
+        real gaus
+
+C     Do Shift
+        print *,"Do ToyMC shift ",i
+C     Loop over all point and measurements
+        do iP=1,NMeas
+          do idata=1,NMeasF2(iP)
+            E = F2TABOrig(ip,idata) /
+     &            F2ETAB_STAORIG(ip,idata)**2
+            amu = F2TABOrig(ip,idata)*E
+            CALL RNPSSN(amu,N,ierr)
+            CALL RNORMX(gaus,1,RANLUX)
+
+C           Use puissonin errors
+C           F2TAB(ip,idata) = N / E
+
+C           Use gaussian errors
+            F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &       F2ETAB_STAORIG(ip,idata)*gaus
+C            print *,gaus
+C            print *,F2TAB(ip,idata),F2TABOrig(ip,idata)
+          enddo
+        enddo
 
       end
 
 C-----------------------------------------------------------------------------
-!>    Save average wavue after a certain offset systematic
+!>    Save average value after a certain offset systematic
+C-----------------------------------------------------------------------------
+      Subroutine SaveAverageOValue(i)
+        implicit none
+        include 'common.inc'
+        integer i, iP
+
+C     Loop over all point
+        do iP=1,NMeas
+            F2VaveOSyst(iP,i) = f2vave(iP)
+        enddo
+
+      end
+
+C-----------------------------------------------------------------------------
+!>    Save average value after a certain systematic shift of measured point
 C-----------------------------------------------------------------------------
       Subroutine SaveAverageValue(i)
         implicit none
@@ -547,6 +649,21 @@ C-----------------------------------------------------------------------------
 C     Loop over all point
         do iP=1,NMeas
             F2VaveSyst(iP,i) = f2vave(iP)
+        enddo
+
+      end
+
+C-----------------------------------------------------------------------------
+!>    Save average value after a certain systematic shift of measured point
+C-----------------------------------------------------------------------------
+      Subroutine SaveAverageToyMCValue(i)
+        implicit none
+        include 'common.inc'
+        integer i, iP
+
+C     Loop over all point
+        do iP=1,NMeas
+            F2VaveToyMCStat(iP,i) = f2vave(iP)
         enddo
 
       end
@@ -594,13 +711,56 @@ C     Loop over bins
 C     Loop over systematics
           do isys=1,NSYSOTOT
               OSyst(if2,isys)=
-     $         ((F2VaveSyst(if2,2*isys-1)-f2vave(if2)) -
-     $        (F2VaveSyst(if2,2*isys)-f2vave(if2)))/2
-              OSyst(if2,isys)=OSyst(if2,isys)/f2vave(if2)*100
+     $         ((F2VaveOSyst(if2,2*isys-1)-f2vave(if2)) -
+     $        (F2VaveOSyst(if2,2*isys)-f2vave(if2)))/2
+              OSystPercent(if2,isys)=OSyst(if2,isys)/f2vave(if2)*100
           enddo
         enddo
       end
 
+C-----------------------------------------------------------------------------
+!>    Calculate ToyMC statistical uncertainties
+C-----------------------------------------------------------------------------
+      Subroutine CalcToyMCStat()
+        implicit none
+        include 'common.inc'
+        integer if2, isys
+        real b,b2
+
+C     Loop over bins
+        do if2=1,NMeas
+C     Loop over systematics
+          b = 0
+          b2 = 0
+          do isys=1,nToyMC
+C            print *,F2VaveToyMCStat(if2,isys)
+            b = b + F2VaveToyMCStat(if2,isys)
+            b2 = b2 + F2VaveToyMCStat(if2,isys)**2
+          enddo
+          b = b/nToyMC
+          b2 = b2/nToyMC 
+          StatToyMC(if2)= SQRT(b2 - b**2)
+        enddo
+
+      end
+C-----------------------------------------------------------------------------
+!>    Calculate impact of systematics
+C-----------------------------------------------------------------------------
+      Subroutine CalcSystImpact()
+        implicit none
+        include 'common.inc'
+        integer if2, isys
+
+C     Loop over bins
+        do if2=1,NMeas
+C     Loop over systematics
+          do isys=1,NSYSTOT
+              SystImpact(if2,isys)=
+     $         ((F2VaveSyst(if2,2*isys-1)-f2vave(if2)) -
+     $        (F2VaveSyst(if2,2*isys)-f2vave(if2)))/2
+          enddo
+        enddo
+      end
 
 C-----------------------------------------------------------------------------
 !>    Analysis of shifts of asymmetric systematics in order to understand if

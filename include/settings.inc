@@ -37,6 +37,10 @@ C     Number of datasets:
       integer NInputFiles  ! number of input files
       common/CNInputFiles/NInputFiles
 
+C     Number of ToyMC tests for stat. error
+      integer nToyMC
+      parameter (nToyMC=1000) 
+
 C Namelist  variables:
       integer ndataMax,ncolumnMax
       parameter (ndataMax=1000)  !> Max. number of entries per data file
