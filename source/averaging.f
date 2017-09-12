@@ -99,6 +99,7 @@ C     Averaging of data from different experiments
       include 'common.inc'
       logical onlyLast
       logical lastItr
+      integer i,j,k
 
       real*8
      $     DIAG(NF2MAX),LAST(NF2MAX+NSYSTMAX),CORR(NSYSTMAX,NF2MAX)
@@ -124,12 +125,25 @@ C         Prepare the system of equations
           Call FillArrays(diag,last,corr,box,onlyLast)
 
 C         Copy all arrays
-          boxs = box
-          Diags = diag
-          Lasts = last
-          CORRs = corr
+          do i = 1,NMeas
+            diags(i) = diag(i)     
+            do j = 1,NSysTot
+              corrs(j,i) = corr(j,i)
+            enddo
+          enddo
 
-C     Find averaged value and systematics:
+          do i=1,NSysTot
+            do j=1,NSysTot
+              boxs(i,j) = box(i,j)
+            enddo
+          enddo
+
+          do i = 1,(NMeas+NSysTot)
+            lasts(i) = last(i)
+          enddo
+
+
+C         Find averaged value and systematics:
           Call ToBlockDiag(diags,lasts,corrs,boxs) 
       enddo
 
