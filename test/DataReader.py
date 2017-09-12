@@ -36,12 +36,16 @@ def paverage(_bins,_data,_error):
 	path = os.getcwd()
 	files = glob.glob(path + "/*.csv")
 	fnames = glob.glob("*.csv")
+	#files = glob.glob(path + "/*.txt")
+	#fnames = glob.glob("*.txt")
+
 
 	# Read all .csv in current directory and make a list of dataframes
 	listofdfs = []
 	for fileloc in files:
+		print fileloc
 		file = pd.read_csv(fileloc)
-		print file
+		#print file
 		listofdfs += [file]
 
 	# Find all the bin names in all the files by making a super dataframe 
@@ -64,19 +68,23 @@ def paverage(_bins,_data,_error):
 	else:
 		bins  = _bins.split(',')
  
+	#print fields
+
 	if(_error==''):
 		serror = [s for s in fields if "stat" in s]
-		oerror = [s for s in fields if "error" in s]
+		oerror = [s for s in fields if ("stat" not in s) and ("bin1" not in s) and ("data" not in s)]
 	else:
 		stmp = _error.split(',')
 		serror = [s for s in stmp if "stat" in s]
-		oerror = [s for s in stmp if "stat" not in s]		
+		oerror = [s for s in stmp if "stat" not in s]	
 
 	# Group the mega-dataframe by the bins and
 	# extract the bin names from the grouped dataframes. 
 	grouped = list(df.groupby(bins))                 
 
 	binnames = [item[0] for item in grouped] 
+
+	#print 'Bin names: ', binnames
 
 	# If the bin names are tupples - i.e. if more than one column specifies the bin.
 	if(type(binnames[0])==tuple):                        
@@ -120,9 +128,9 @@ def paverage(_bins,_data,_error):
 			# Input other errors
 			j = 0
 			for coerror in oerror:                      # Read coerror as "current other error"
+				#print coerror
 				if coerror in row:
 					toerror = row[coerror]
-					#print hbin,j,i
 					oerror_[j,hbin,i] = toerror
 				j += 1
 		i += 1
