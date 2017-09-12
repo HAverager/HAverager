@@ -1,4 +1,4 @@
-      Subroutine FillArrays(diag,last,corr,box)
+      Subroutine FillArrays(diag,last,corr,box,onlyLast)
 C---------------------------------------------------------------
 C Fill axillary arrays for the matrix inversion
 C---------------------------------------------------------------
@@ -6,6 +6,7 @@ C---------------------------------------------------------------
       include 'common.inc'
       real*8 diag(NF2MAX),Last(NF2MAX+NSYSTMAX),Corr(NSYSTMAX,NF2MAX)
       real*8 Box(NSystmax,NSystmax)
+      logical onlyLast
 
 C Local:
       integer isys,if2,iexp,i,j,k,isys1,isys2
@@ -34,25 +35,6 @@ C Count number of SF / X-section points to fit
 
       !NSysTot = NSysTot - 1  ! because the stat uncertainty is not included
 
-C      print *,'Total number of SF/X-section points= ',NDiag
-
-C Set all values to zero:
-      do i = 1,NDiag
-         diag(i)   = 0.0         
-         do j = 1,NSysTot
-            corr(j,i) = 0.0
-         enddo
-      enddo
-
-      do i = 1,NMatr
-         last(i) = 0.0
-      enddo
-
-      do i=1,NSysTot
-         do j=1,NSysTot
-            box(i,j) = 0.0
-         enddo
-      enddo
 
       Allocate (err2tab(NDiag,NMEASMAX)) ! !
 
@@ -67,6 +49,23 @@ C
 C Construct the matrix:
 C
 
+      if(onlyLast)then
+
+C Set values to zero:
+      do i = 1,NDiag
+         diag(i)   = 0.0         
+         do j = 1,NSysTot
+            corr(j,i) = 0.0
+         enddo
+      enddo
+
+
+      do i=1,NSysTot
+         do j=1,NSysTot
+            box(i,j) = 0.0
+         enddo
+      enddo
+
 C Fill in the diagonal elements (matrix Am)
       do i = 1,NDiag
          do j = 1,NMeasF2(i)
@@ -75,36 +74,14 @@ C Fill in the diagonal elements (matrix Am)
       enddo
 
 
-C Fill in the right side vector:
-      do i = 1,NDiag
-         do j = 1,NMeasF2(i)
-            last(i) = last(i) + 
-     $           F2TAB(i,j)*err2tab(i,j)
-         enddo
-      enddo
-
 
 C Fill in the rectangle correlation matrix (Asm):
-
-
       do k = 1,NSysTot
          do i = 1,NDiag
             do j = 1,NMEASF2(i)
                CORR(k,i) = CORR(k,i) 
      $              -SYSTAB(k,i,j)
      $              *err2tab(i,j)
-            enddo
-         enddo
-      enddo
-
-
-C Last column correlation:
-      do k = 1,NSysTot
-         do i = 1,NDiag
-            do j = 1,NMeasF2(i)
-               last(NDiag+k) = last(NDiag+k) 
-     $              - SYSTAB(k,i,j)
-     $              * F2TAB(i,j)*err2tab(i,j)
             enddo
          enddo
       enddo
@@ -135,8 +112,45 @@ C Add 1 to box diagonal:
          BOX(j,j) = BOX(j,j) + 1.0
       enddo
 
+      endif
 
+C Fill in the right side vector:
+      do i = 1,NMatr
+         last(i) = 0.0
+      enddo
 
+       do i = 1,NDiag
+         do j = 1,NMeasF2(i)
+            last(i) = last(i) + 
+     $           F2TAB(i,j)*err2tab(i,j)
+         enddo
+       enddo
+
+C Last column correlation:
+       do k = 1,NSysTot
+         do i = 1,NDiag
+            do j = 1,NMeasF2(i)
+               last(NDiag+k) = last(NDiag+k) 
+     $              - SYSTAB(k,i,j)
+     $              * F2TAB(i,j)*err2tab(i,j)
+            enddo
+         enddo
+       enddo
+
+C Fill matrix A' = As - Asm^T Am^-1 Asm
+      do if2=1,NDiag
+         do isys=1,NSYSTOT
+            Coef = - Corr(isys,if2)/diag(if2)
+            if (Coef.ne.0) then
+               if (onlyLast) then
+               do j=1,NSYSTOT
+                  box(j,isys) = box(j,isys) + corr(j,if2)*Coef
+               enddo
+               endif
+               last(NDiag+isys) = last(NDiag+isys) + last(if2)*Coef
+            endif
+         enddo
+      enddo
 
       if (IDebug. ge. 4) then
          write(*,*) 'debug:'

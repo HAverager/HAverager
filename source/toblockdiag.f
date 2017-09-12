@@ -9,7 +9,7 @@ C---------------------------------------------------------------
       real*8 Box(NSYSTMAX,NSYSTMAX) ! Original syst --> covariance matrix
 C Local:
       integer if2,isys,j,iexp
-      real*8  Coef,SUM
+      real*8  SUM
 
       real*8 work(NSYSTMAX)
       integer ifail
@@ -23,21 +23,6 @@ C Prepare vaiables:
 C
       NDiag = NMeas 
 
-C
-C === Find new Central Values and Uncertainties for the Systematics
-C
-
-      do if2=1,NDiag
-         do isys=1,NSYSTOT
-            Coef = - Corr(isys,if2)/diag(if2)
-            if (Coef.ne.0) then
-               do j=1,NSYSTOT
-                  box(j,isys) = box(j,isys) + corr(j,if2)*Coef
-               enddo
-               last(NDiag+isys) = last(NDiag+isys) + last(if2)*Coef
-            endif
-         enddo
-      enddo
 
 C
 C Invert box matrix corresponding in order to get systematic uncertainties:
