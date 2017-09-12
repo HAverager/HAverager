@@ -550,7 +550,7 @@ C     Asymmetric case
      &             SYSTABOrig(iSyst,ip,idata,2)
 C     Symmetric case
                 else
-                  print *,ip,idata,iSyst,SYSTABOrig(iSyst,ip,idata,1)
+C                  print *,ip,idata,iSyst,SYSTABOrig(iSyst,ip,idata,1)
                   F2TAB(ip,idata) = F2TABOrig(ip,idata) +
      &               SYSTABOrig(iSyst,ip,idata,1)
                 endif
@@ -725,7 +725,7 @@ C-----------------------------------------------------------------------------
         implicit none
         include 'common.inc'
         integer if2, isys
-        real b,b2
+        real*8 b,b2
 
 C     Loop over bins
         do if2=1,NMeas
@@ -733,7 +733,6 @@ C     Loop over systematics
           b = 0
           b2 = 0
           do isys=1,nToyMC
-C            print *,F2VaveToyMCStat(if2,isys)
             b = b + F2VaveToyMCStat(if2,isys)
             b2 = b2 + F2VaveToyMCStat(if2,isys)**2
           enddo
