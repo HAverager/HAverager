@@ -79,7 +79,7 @@ C     Loop over all point and measurements
         enddo
       enddo
 
-      call RunIterativeAveraging(diag,last,corr,box,.true.,.true.)
+      call RunIterativeAveraging(diag,last,corr,box,.false.,.true.)
 
 C     Analyse systematic shifts over iterations
       Call AnalyseShifts()
@@ -125,22 +125,10 @@ C         Prepare the system of equations
           Call FillArrays(diag,last,corr,box,onlyLast)
 
 C         Copy all arrays
-          do i = 1,NMeas
-            diags(i) = diag(i)     
-            do j = 1,NSysTot
-              corrs(j,i) = corr(j,i)
-            enddo
-          enddo
-
-          do i=1,NSysTot
-            do j=1,NSysTot
-              boxs(i,j) = box(i,j)
-            enddo
-          enddo
-
-          do i = 1,(NMeas+NSysTot)
-            lasts(i) = last(i)
-          enddo
+          diags(1:NMeas) = diag(1:NMeas)
+          corrs(1:NSysTot,1:NMeas) = corr(1:NSysTot,1:NMeas) 
+          boxs(1:NsysTot,1:NsysTot) = box(1:NsysTot,1:NsysTot)
+          lasts(1:NMeas+NSysTot) = last(1:NMeas+NSysTot)
 
 
 C         Find averaged value and systematics:
