@@ -59,7 +59,7 @@ C     Loop over ToyMC shifts
 C     Recalculate central values to estimate given systematics
           call ActivateStatToyMC(i)
 
-          call RunIterativeAveraging(diag,last,corr,box,.false.,.false.)
+          call RunIterativeAveraging(diag,last,corr,box,.true.,.false.)
 
           call SaveAverageToyMCValue(i)
       enddo
