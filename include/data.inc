@@ -68,20 +68,22 @@ C Reference back to the data file:
 
 
 C Output:
-      real F2Vave(NF2MAX)
+      real*8 F2Vave(NF2MAX)
      $     ,F2Eave(NF2Max)
      $     ,F2EstAve(NF2Max)
      $     ,F2EstAveTrue(NF2Max)
      $     ,F2Esyave(NF2Max)
       real*8 SYSSH(NSYSTMAX)       ! Shifts of the systematics
       real*8 SYSSHItr(NSYSTMAX,0:NIterMax)    ! Shifts of the systematics for all iterations
-      real*8 ERRSYST(NSYSTMAX)   ! Reduction of the systematics
-      real*8 F2VaveToyMCStat(NF2MAX,nToyMC) ! Averaged values with all ToyMC systematics
       real*8 F2VaveOSyst(NF2MAX,NSYSTMAX) ! Averaged values with all offset systematics
       real*8 F2VaveSyst(NF2MAX,NSYSTMAX) ! Averaged values with all syst. shifts
+      real*8 F2VaveToyMCStat(NF2MAX,nToyMC) ! Averaged values with all ToyMC systematics
       real Chi2Itr(0:NIterMax) ! Chi2 value for all iterations
+
       Common/CF2out/F2Vave,F2Eave,F2Estave,F2EstAveTrue,F2Esyave,
-     $ syssh,SYSSHItr,F2VaveOSyst,F2VaveSyst,Chi2Itr,F2VaveToyMCStat
+     $ syssh,SYSSHItr,F2VaveOSyst,F2VaveSyst,F2VaveToyMCStat,Chi2Itr
+
+      real*8 ERRSYST(NSYSTMAX)   ! Reduction of the systematics
       Common/CF2outd/ERRSYST
 
 
