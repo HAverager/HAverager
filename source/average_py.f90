@@ -213,6 +213,8 @@ C     Fill fake input filenames
       enddo
 
 
+
+      
 C     Fill data and uncertainties
 C     Loop over measurements
       do i=1,NMeas
@@ -238,7 +240,7 @@ C        Loop over data points
          enddo
       enddo
 
-
+      
 C     Perform the averaging:
       call Averaging
 

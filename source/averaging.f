@@ -13,11 +13,13 @@ C--------------------------------------------------------------
       print *,"Number of systematics",NSYSTOT,NSYSOTOT
 
 C Allocate arrays:
+
+c      if (.false.) then
       
 
 C     Loop over offset systematics
       print *,"Run offset systematics"
-      do i=1,(2*NSYSOTOT)
+      do i=1,0! (2*NSYSOTOT)
 
           print *,"Current offset systematic: ",i,"/",(2*NSYSOTOT)
 
@@ -34,10 +36,11 @@ C     Run nominal at the end
 C     Calculate offset systematics
       call CalcOffsetSyst()
 
+
 C     Check impact of systametics 
 C     Loop over all non-offset systematics     
       print *,"Run syst. shifts" 
-      do i=1,(2*NSYSTOT)
+      do i=1,0 ! (2*NSYSTOT)
 
           print *,"Current systematic: ",i,"/",(2*NSYSTOT)
 
@@ -52,7 +55,7 @@ C     Recalculate central values to estimate given systematics
 C     Run ToyMC for statistical uncertainties
 C     Loop over ToyMC shifts     
       print *,"Run stat ToyMC" 
-      do i=1,(nToyMC)
+      do i=1,0 ! (nToyMC)
 
           print *,"Current ToyMC: ",i,"/",(nToyMC)
 
@@ -65,8 +68,8 @@ C     Recalculate central values to estimate given systematics
       enddo
 
 C     Calculate ToyMC systematics
-      call CalcToyMCStat()
-
+cc      call CalcToyMCStat()
+c      endif
 
 
 C     Run nominal averaging
@@ -79,7 +82,8 @@ C     Loop over all point and measurements
         enddo
       enddo
 
-      call RunIterativeAveraging(diag,last,corr,box,.false.,.true.)
+      call RunIterativeAveraging(diag,last,corr,box,.true.,.true.)
+
 
 C     Analyse systematic shifts over iterations
       Call AnalyseShifts()
@@ -114,11 +118,11 @@ C     A copy:
 C     Loop over iterations
       do iItr=0,NIteration
 
-          print *,"Iteration",iItr,"/",NIteration
+          print *,"Iteration",iItr,"/",NIteration,onlyLast
 
 C     If there is a multiplicative treatment, recalculate stat errors and repeat the average:
           if (iItr.ne.0) then
-              Call StatRecalc
+c              Call StatRecalc
           endif
 
 C         Prepare the system of equations
@@ -130,16 +134,16 @@ C         Copy all arrays
           boxs(1:NsysTot,1:NsysTot) = box(1:NsysTot,1:NsysTot)
           lasts(1:NMeas+NSysTot) = last(1:NMeas+NSysTot)
 
-
+          print *,'BOX',box(1,1)
+          
 C         Find averaged value and systematics:
           Call ToBlockDiag(diags,lasts,corrs,boxs) 
       enddo
-
+      stop
       if(lastItr)then
 C       Prepare output, rotate syst.
 C       Do not run for offset systematics
         call LastIteration(diags,lasts,corrs,boxs)
       endif
-
       end
 

@@ -11,7 +11,7 @@ C
 
 C Sizes:
       parameter (NMEASMAX=20,
-     $     NF2MAX=3000,NSYSTMAX=400,NREACTMAX=10)
+     $     NF2MAX=3000,NSYSTMAX=3000,NREACTMAX=10)
       parameter (NDimensionMax=10)
       parameter (NMaxShiftType=3)   !> Max. number of type of shifts: Symmetric,Up,Down
 

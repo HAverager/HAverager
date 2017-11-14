@@ -16,6 +16,7 @@ C Local:
 
       integer NDiag
 
+      double precision time1,time2
 C---------------------------------------------------------------------
 
 C
@@ -23,7 +24,7 @@ C Prepare vaiables:
 C
       NDiag = NMeas 
 
-
+      call cpu_time(time1)
 C
 C Invert box matrix corresponding in order to get systematic uncertainties:
 C
@@ -36,6 +37,9 @@ C Solve without inversion (faster):
         endif
       endif
 
+      call cpu_time(time2)
+      print *,'Inversion = ',time1,time2,time2-time1,NIteration
+      
       if (IFail.ne.0) then
          call hf_errlog(1,'F:Failed to invert syst. matrix !!!') 
       endif

@@ -139,7 +139,7 @@ C     First check if already present:
       character *32 CurrentSysName
       character *1 CurrentSysForm
 C-----------------------------
-
+c      print *,'hhh'
       !> Add an entry:
       NMEASF2(idxData) = NMEASF2(idxData) + 1
        if (NMEASF2(idxData).gt.NMEASMAX) then
@@ -165,7 +165,7 @@ C      print *, Nsys, NSysTot
 
       do jj = 1, NSys
 C     Check up (2) and down (3) systematics
-         if(Index(SystematicType(jj), "+").gt.0) then
+         if(Index(SystematicType(jj), "+").gt.0) then                       ! SG WHY HERE XXXXXXXXXXXXXXXX
            CurrentSysName =
      &    SystematicType(jj)(:Index(SystematicType(jj), "+")-1) //
      &    SystematicType(jj)(Index(SystematicType(jj), "+")+1:)
@@ -190,66 +190,73 @@ C---- Cut systematics form
             CurrentSysForm = "M"
          endif
 
+
 C---  If it is offset systematic
          if(CurrentSysForm .eq. "O")then
-             do k  = 1, NSysOTot
-                if ( SystematicOName(k).eq.CurrentSysName ) then
+            do k  = 1, NSysOTot
+               if ( SystematicOName(k).eq.CurrentSysName ) then
+                  
+                  print *,'hh',k,jj
 C     Define global variable for type of shift >2 - Up/Down shift
 C            print *,systype
                   if(systype.gt.1)then
-                    ShiftOType(k,idxData,idxP) =
-     &              ShiftOType(k,idxData,idxP) + 1
-C                   print *,"DoIncreaseShiftType",ShiftType(k)
+                     ShiftOType(k,idxData,idxP) =
+     &                    ShiftOType(k,idxData,idxP) + 1
+C     print *,"DoIncreaseShiftType",ShiftType(k)
                   endif
                   SYSTABOOrig(k,idxData,idxP,systype) = Syst(jj)
                   if (IDebug.gt.2) then
                      print *, "Offset",k, idxData, idxP, systype,
-     &               Syst(jj),ShiftOType(k,idxData,idxP)
+     &                    Syst(jj),ShiftOType(k,idxData,idxP)
                   endif
-
+                  
                   if(ShiftOType(k,idxData,idxP).eq.1) then
                      continue
                   endif
-C                 print *,"OType",ShiftOType(k),k,SystematicOName(k)
-                endif
-             enddo
+C     print *,"OType",ShiftOType(k),k,SystematicOName(k)
+               endif
+            enddo
          else
 
 C---  non-offset systematic
-         do k  = 1, NSysTot
-            if ( SystematicName(k).eq.CurrentSysName ) then
+C            do k  = 1, NSysTot
+            do k  = jj, jj
+               if ( SystematicName(k).eq.CurrentSysName ) then
 C     Define global variable for type of shift >2 - Up/Down shift
-C            print *,systype
-              if(systype.gt.1)then
-                ShiftType(k,idxData,idxP) =
-     &           ShiftType(k,idxData,idxP) + 1
-C                print *,"DoIncreaseShiftType",ShiftType(k)
-              endif
-               SYSTABOrig(k,idxData,idxP,systype) = Syst(jj)
-               if (IDebug.gt.2) then
-                 print *, k, idxData, idxP, systype, Syst(jj),
-     &           ShiftType(k,idxData,idxP)
-               endif
+C     print *,systype
+c                  print *,'haha',k,CurrentSysName ,jj
+
+                  if(systype.gt.1)then
+                     ShiftType(k,idxData,idxP) =
+     &                    ShiftType(k,idxData,idxP) + 1
+C     print *,"DoIncreaseShiftType",ShiftType(k)
+                  endif
+                  SYSTABOrig(k,idxData,idxP,systype) = Syst(jj)
+                  if (IDebug.gt.2) then
+                     print *, k, idxData, idxP, systype, Syst(jj),
+     &                    ShiftType(k,idxData,idxP)
+                  endif
 
 C     Fill SysTab array using SYSTABOrig
-               if(ShiftType(k,idxData,idxP).eq.2) then
-                SysTab(k,idxData,idxP) =
-     &         (SYSTABOrig(k,idxData,idxP,2) -
-     &          SYSTABOrig(k,idxData,idxP,3))/2
-               else if(ShiftType(k,idxData,idxP).eq.0) then
-                 SysTab(k,idxData,idxP) = SYSTABOrig(k,idxData,idxP,1)
-               endif
+                  if(ShiftType(k,idxData,idxP).eq.2) then
+                     SysTab(k,idxData,idxP) =
+     &                    (SYSTABOrig(k,idxData,idxP,2) -
+     &                    SYSTABOrig(k,idxData,idxP,3))/2
+                  else if(ShiftType(k,idxData,idxP).eq.0) then
+                     SysTab(k,idxData,idxP) =
+     $                    SYSTABOrig(k,idxData,idxP,1)
+                  endif
 
-               if(ShiftType(k,idxData,idxP).eq.1) then
-                 continue
+                  if(ShiftType(k,idxData,idxP).eq.1) then
+                     continue
+                  endif
+C     print *,"ShiftType",ShiftType(k),k,SystematicName(k)
                endif
-C               print *,"ShiftType",ShiftType(k),k,SystematicName(k)
-            endif
-         enddo
-
+            enddo
+            
          endif
       enddo
-
+      
 
 C     Print error message if Up/Down part is missing
       do k  = 1, NSysTot
