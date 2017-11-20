@@ -114,6 +114,7 @@ C     A copy:
       real*8 Diags(NF2MAX),Lasts(NF2MAX+NSYSTMAX)
      $     ,CORRs(NSYSTMAX,NF2MAX)
 
+      double precision time1,time2
 
 C     Loop over iterations
       do iItr=0,NIteration
@@ -139,11 +140,15 @@ C         Copy all arrays
 C         Find averaged value and systematics:
           Call ToBlockDiag(diags,lasts,corrs,boxs) 
       enddo
-      stop
+      !stop
+      call cpu_time(time1)
+      print *,'here3',time2,time1,time1-time2
       if(lastItr)then
 C       Prepare output, rotate syst.
 C       Do not run for offset systematics
-        call LastIteration(diags,lasts,corrs,boxs)
+        call LastIteration(diags,lasts,corrs,boxs,box)
       endif
+      call cpu_time(time2)
+      print *,'LastItr: ',time2,time1,time2-time1
       end
 

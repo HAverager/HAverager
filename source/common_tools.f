@@ -682,26 +682,11 @@ C-----------------------------------------------------------------------------
       Subroutine SaveChi2()
         implicit none
         include 'common.inc'
-        integer i, j, isys
-        real sum, chi2loc, chi2
+        integer ndf
+        real chi2
 
-C       Fill Chi^2 and NDoF
-        chi2 = 0.0
-        do i = 1, NMeas
-         do j = 1, NMeasF2(i)
-            sum = F2TAB(i,j)
-            do isys = 1, NSYSTOT
-               sum = sum + SYSTAB(isys,i,j)*SYSSH(isys)
-            enddo
-            chi2loc = (F2VAVE(i)-sum)/ (F2ETAB(i,j))
-            chi2 = chi2 + chi2loc**2
-         enddo
-        enddo
-        do isys=1,NSYSTOT
-          chi2 = chi2 + SYSSH(isys)**2
-        enddo
- 
-        Chi2Itr(iItr) = chi2 + SYSSH(isys)**2
+        call CalcChi2(chi2, ndf)
+        Chi2Itr(chi2)
       end
 
 

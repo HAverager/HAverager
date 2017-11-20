@@ -92,6 +92,7 @@ C
 
 C Average control:
       logical AveSameExp
+      logical UseBlas
 
       Common/CF2Pars2/NMEAS,NF2TOT,NSYSTOT
      $     ,NSFSEC 
@@ -105,7 +106,7 @@ C Average control:
      $     ,NumCommonBins
      $     ,NMEASF2
      $     ,iOutput
-
+     $     ,UseBlas
 
 C Parameters:
       Common/CPARS/Match_parameter

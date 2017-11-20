@@ -23,7 +23,6 @@ C Local:
       real*8, allocatable :: err2tab(:,:)
 
       double precision time1,time2
-      logical useBlas
 
       real*8, allocatable :: sys1(:,:),sys2(:,:)
       real*8, allocatable :: sys1b(:,:),sys2b(:,:)
@@ -32,7 +31,7 @@ C Local:
       integer NdataT,idataT
 
       double precision box2(nsystmax,nsystmax)
-      
+   
 C---------------------------------------------------------------------
 
 
@@ -117,9 +116,6 @@ C Fill in the box matrix (As):
          call cpu_time(time1)
          print *,'here',time1
 
-         useBlas = .true.
-c       useBlas = .false.
-
          if (useBlas) then
          
 ! perpare arrays:
@@ -138,7 +134,6 @@ c       useBlas = .false.
          
          ! BLAS:
             call dgemm('N','N',nsystot,nsystot, nDataT, 1.0D0,
-c         call cublas_dgemm('N','N',nsystot,nsystot, nDataT, 1.0D0,
      $           sys1, nsystot, sys2, NDataT, 0.D0, box, nsystmax)
 
             deallocate(sys1)
@@ -212,11 +207,9 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
 
       if (onlylast) then
 
-
-c         if (.false.) then      ! needs debuging.
          if (useBlas) then
-            allocate(sys1b(nsystot,NDiag))
-            allocate(sys2b(NDiag,nsystot))
+            allocate(sys1b(NDiag,nsystot))
+            allocate(sys2b(nsystot,NDiag))
             do isys=1,nsystot
                do if2=1,ndiag
                   sys1b(if2,isys) =  -corr(isys,if2)
@@ -226,23 +219,12 @@ c         if (.false.) then      ! needs debuging.
 
          ! BLAS:
             call dgemm('N','N',nsystot,nsystot, ndiag, 1.D0,
-c            call cublas_dgemm('N','N',nsystot,nsystot, nDataT, 1.0D0,
-     $           sys1b, nsystot, sys2b, Ndiag, 1.D0, box, nsystmax)
+     $           sys2b, nsystot, sys1b, Ndiag, 1.D0, box, nsystmax)
 
-c            do if2=1,NDiag
-c               do isys=1,NSYSTOT
-c                  do j=1,NSYSTOT
-c                     box2(isys,j) = box2(isys,j)
-c     $                    + sys1b(isys,if2)*sys2b(if2,j)
-c                  enddo
-c               enddo
-c            enddo
-                        
             deallocate(sys1b)
             deallocate(sys2b)
 
          else
-            print *,box(1,2),box(2,1)
             do if2=1,NDiag
                do isys=1,NSYSTOT
                   do j=isys,NSYSTOT
@@ -260,8 +242,6 @@ c            enddo
             enddo         
          endif
       endif
-
-      print *,box(1,2),box(2,1)
       
       call cpu_time(time2)
       print *,'here4',time1,time2,time2-time1

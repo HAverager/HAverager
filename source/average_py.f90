@@ -10,6 +10,7 @@ C     Module with input paratemetrs
       logical InRescaleStatSep
       logical InCorrectStatBias
       logical InFixStat
+      logical InUseBlas
       character(len=128), allocatable :: Insname(:)
 
       contains
@@ -36,6 +37,7 @@ C     Initialization of steerable parameters with default values
           InRescaleStatSep = .false.
           InCorrectStatBias = .false.
           InFixStat = .false.
+          InUseBlas = .false.
           init = 777
       end subroutine initVariables
 
@@ -154,6 +156,7 @@ C     Fill input parameters
       RescaleStatSep = InRescaleStatSep
       CorrectStatBias = InCorrectStatBias
       FixStat = InFixStat
+      UseBlas = InUseBlas
 
 C     Create output directory
       CALL system("mkdir -p "//trim(OutputFolder))
@@ -168,6 +171,7 @@ C     Print initial variables
       print *,'CorrectStatBias:         ',CorrectStatBias
       print *,'RescaleStatSep:          ',RescaleStatSep
       print *,'FixStat:                 ',FixStat
+      print *,'UseBlas:                 ',UseBlas
       print *,'Output folder:           ',OutputFolder
 
 
