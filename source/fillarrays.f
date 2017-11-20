@@ -29,8 +29,6 @@ C Local:
       logical lfirst
       data lfirst/.true./
       integer NdataT,idataT
-
-      double precision box2(nsystmax,nsystmax)
    
 C---------------------------------------------------------------------
 
@@ -84,7 +82,6 @@ C Set values to zero:
          do i=1,NSysTot
             do j=1,NSysTot
                box(i,j) = 0.0
-               box2(i,j) = 0.0
             enddo
          enddo
 

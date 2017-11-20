@@ -74,7 +74,7 @@ C---------------------------------------------------
       real*8 Boxinv(NSYSTMAX,NSYSTMAX) ! Inverted Covariance matrix As'^-1
 
       real*8 Corr2(NSYSTMAX,NF2MAX)  !  Rotated systematics:
-      real*8 chi2,sum1,sum2,pull
+      real*8 chi2
       integer i,j,if2, ifail, imeas, ipc, isys1, isys2, isys
       real*8 work(NSYSTMAX)
       real*8 WWW(NSYSTMAX)  ! Eigenvalues
@@ -150,7 +150,7 @@ C Calculate CHI2 according to the formula for chi2:
       call CalcChi2(chi2, ndf)
 
 C Write Averaged values and chi2
-     call PrintAveSummary(chi2, ndf)
+      call PrintAveSummary(chi2, ndf)
 
 
 C Zero close to zero correlations to avoid strange results
@@ -396,8 +396,8 @@ C Calculate CHI2 according to the formula for chi2:
       Subroutine CalcChi2(chi2, ndf)
       implicit none
       include 'common.inc'
-      real*8 chi2,chi2loc
-      integer ndf
+      real*8 chi2,chi2loc, sum
+      integer ndf, i, j, isys
 
       chi2 = 0.0
       ndf  =  0

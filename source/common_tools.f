@@ -686,7 +686,7 @@ C-----------------------------------------------------------------------------
         real chi2
 
         call CalcChi2(chi2, ndf)
-        Chi2Itr(chi2)
+        Chi2Itr(chi2) = chi2
       end
 
 
