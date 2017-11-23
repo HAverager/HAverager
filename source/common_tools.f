@@ -403,13 +403,29 @@ C-----------------------------------------------------------------------------
         integer i
         integer iSyst, iP, idata
 
-C     Loop over offset systeatics
-        do iSyst=1,NSYSOTOT
+        if(mod(i,2).eq.0)then        
+            iSyst = i/2
+            print *,"Do variation Down for ",
+     & SystematicName(NSYSTMAX+iSyst)
+C     Loop over all point and measurements
+            do iP=1,NMeas
+              do idata=1,NMeasF2(iP)
+C     Asymmetric down case
+                if(SysForm(NSYSTMAX+iSyst).eq. 12) then
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &             SYSTABOrig(NSYSTMAX+iSyst,ip,idata,2)
+C     Symmetric case
+                else
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) -
+     &               SYSTABOrig(NSYSTMAX+iSyst,ip,idata,1)
+                endif
 
-C     Do Shift Up
-          if(((2*iSyst)-1) .eq. i)then
+              enddo
+            enddo
+        else
+            iSyst = (i+1)/2
             print *,"Do variation Up for ",
-     &              SystematicName(NSYSTMAX+iSyst)
+     & SystematicName(NSYSTMAX+iSyst)
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
@@ -419,30 +435,7 @@ C     Asymmetric up/symmetric case
               enddo
             enddo
             return
-          endif
-
-C     Do Shift Down
-          if((2*iSyst) .eq. i)then
-            print *,"Do variation Down for ",
-     &              SystematicName(NSYSTMAX+iSyst)
-C     Loop over all point and measurements
-            do iP=1,NMeas
-              do idata=1,NMeasF2(iP)
-C     Asymmetric case
-                if(SysForm(NSYSTMAX+iSyst) .eq. 12) then
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
-     &             SYSTABOrig(NSYSTMAX+iSyst,ip,idata,2)
-C     Symmetric case
-                else
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata) -
-     &               SYSTABOrig(NSYSTMAX+iSyst,ip,idata,1)
-                endif
-              enddo
-            enddo
-            return
-          endif
-
-        enddo
+       endif
 
       end
 
@@ -456,25 +449,9 @@ C-----------------------------------------------------------------------------
 
         integer i
         integer iSyst, iP, idata
-C     Loop over offset systeatics
-        do iSyst=1,NSYSTOT
 
-C     Do Shift Up
-          if(((2*iSyst)-1) .eq. i)then
-            print *,"Do variation Up for ",SystematicName(iSyst)
-C     Loop over all point and measurements
-            do iP=1,NMeas
-              do idata=1,NMeasF2(iP)
-C     Asymmetric up/symmetric case
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
-     &               SYSTABOrig(iSyst,ip,idata,1)
-              enddo
-            enddo
-            return
-          endif
-
-C     Do Shift Down
-          if((2*iSyst) .eq. i)then
+        if(mod(i,2).eq.0)then        
+            iSyst = i/2
             print *,"Do variation Down for ",SystematicName(iSyst)
 C     Loop over all point and measurements
             do iP=1,NMeas
@@ -492,10 +469,19 @@ C     Symmetric case
 
               enddo
             enddo
+        else
+            iSyst = (i+1)/2
+            print *,"Do variation Up for ",SystematicName(iSyst)
+C     Loop over all point and measurements
+            do iP=1,NMeas
+              do idata=1,NMeasF2(iP)
+C     Asymmetric up/symmetric case
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &               SYSTABOrig(iSyst,ip,idata,1)
+              enddo
+            enddo
             return
-          endif
-
-        enddo
+       endif
 
       end
 
