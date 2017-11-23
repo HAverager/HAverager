@@ -48,8 +48,6 @@ C
                scal = 1.0
             endif
 
-            print *,f2new,f2orig,f2newSys,scal
-
 C New error:
             if (RescaleStatSep.or.FixStat) then
 
@@ -77,45 +75,27 @@ C Total uncor error:
 C New systematic sensitivity:
 C Next iterator for asymmetric systematic
             do isys=1,NSYSTOT
-C Multiplicative uncertainty
-                if (SystematicForm(isys).eq.'M') then
-C Asymmetric
-                  if(ShiftType(isys,if2,iexp).eq.2) then
+C Multiplicative Asymmetric
+                if(SysForm(isys).eq.12) then
                    SYSTAB(isys,if2,iexp) =
-     &              ((SYSTABOrig(isys,if2,iexp,2) -
-     &              SYSTABOrig(isys,if2,iexp,3))/2) +
-     &              ((SYSTABOrig(isys,if2,iexp,2) +
-     &              SYSTABOrig(isys,if2,iexp,3))/2) * SYSSH(isys)
+     &              ((SYSTABOrig(isys,if2,iexp,1) -
+     &              SYSTABOrig(isys,if2,iexp,2))/2) +
+     &              ((SYSTABOrig(isys,if2,iexp,1) +
+     &              SYSTABOrig(isys,if2,iexp,2))/2) * SYSSH(isys)
                    SYSTAB(isys,if2,iexp) =
      &              SYSTAB(isys,if2,iexp) * scal
-                  endif
-C Symmetric
-                  if(ShiftType(isys,if2,iexp).eq.0) then
+C Multiplicative Symmetric
+                elseif (SysForm(isys).eq.11) then
                     SYSTAB(isys,if2,iexp) =
      $              SYSTABOrig(isys,if2,iexp,1)
      $               * scal
-                  endif
-C Additive uncertainty
-                elseif (SystematicForm(isys).eq.'A') then
-C Asymmetric
-                  if(ShiftType(isys,if2,iexp).eq.2) then
+C Additive Asymmetric
+                elseif (SysForm(isys).eq.22) then
                    SYSTAB(isys,if2,iexp) =
-     &              ((SYSTABOrig(isys,if2,iexp,2) -
-     &              SYSTABOrig(isys,if2,iexp,3))/2) +
-     &              ((SYSTABOrig(isys,if2,iexp,2) +
-     &              SYSTABOrig(isys,if2,iexp,3))/2) * SYSSH(isys)
-                  endif
-                else
-C Other type of asymmetric   uncertainty
-                  if(ShiftType(isys,if2,iexp).eq.2) then
-                   SYSTAB(isys,if2,iexp) =
-     &              ((SYSTABOrig(isys,if2,iexp,2) -
-     &              SYSTABOrig(isys,if2,iexp,3))/2) +
-     &              ((SYSTABOrig(isys,if2,iexp,2) +
-     &              SYSTABOrig(isys,if2,iexp,3))/2) * SYSSH(isys)
-
-                  endif
-                  write(*,*) 'StatRecalc: WARNING: Treated as additive'
+     &              ((SYSTABOrig(isys,if2,iexp,1) -
+     &              SYSTABOrig(isys,if2,iexp,2))/2) +
+     &              ((SYSTABOrig(isys,if2,iexp,1) +
+     &              SYSTABOrig(isys,if2,iexp,2))/2) * SYSSH(isys)
                 endif
             enddo
  1717    enddo

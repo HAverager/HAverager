@@ -12,6 +12,8 @@ C     Module with input paratemetrs
       logical InFixStat
       logical InUseBlas
       character(len=128), allocatable :: Insname(:)
+      integer, allocatable ::  Inidxsys(:)
+      integer, allocatable ::  Insystype(:)
 
       contains
 
@@ -64,9 +66,11 @@ Cf2py intent(in) snameIn
 cf2py intent(in) nSnameIn
         include 'common.inc'
         allocate(Insname(nSnameIn))
+        allocate(Inidxsys(nSnameIn))
+        allocate(Insystype(nSnameIn))
         do k=1,nSnameIn
           Insname(k)=snameIn(k)
-          call AddSystematics(snameIn(k))
+          call AddSystematics(snameIn(k), k, Inidxsys, Insystype)
         enddo
       end subroutine SetSNames
 
@@ -104,6 +108,7 @@ C     Averaging
       real*8 systIn(nSystIn,ndataIn,nmeasIn)
       real*8 dataOut(ndataIn), statOut(ndataIn)
      $     , systOut(nsystIn,ndataIn)
+      integer idxsys(nsystIn), systype(nsystIn)
       character*8 ctmp
 C python helper:
 
@@ -133,18 +138,12 @@ C     Print size of the input information
 C-------------------------------------------------------------------
 
 C     Initialize default values
-
-      if ( nsystIn.ne.NSysTot) then
-         call cleanInVars
-      endif
-
       if(init.ne.777)then
          Call initVariables
       endif
 
-C  
-
-      call cleanOutVars   ! This ensures that the code can be called twice.
+C     This ensures that the code can be called twice
+      call cleanOutVars
 
 C     Fill input parameters
       IDebug = InDebug
@@ -184,12 +183,13 @@ C     Check if the systematic names were already given
 C     If not, give default names
 
       if(NSysTot.eq.0  .or. (.not. allocated(InsName)  ) ) then
+         print *,'Set dummy names for systematics:'
          NSysTot = nSystIn
          do k=1,nsystot
             if(len(trim(SystematicName(k))).eq.132)then
                write (ctmp,'(''syst'',i0)') k
                SystematicName(k) = ctmp
-               SystematicForm(k) = 'M'
+               SysForm(k) = 11
             endif
          enddo
          call SetSNames(SystematicName,nsystot)
@@ -226,7 +226,6 @@ C     Loop over measurements
 
 C        Loop over data points
          do j=1,nmeasIn
-
             if(datain(i,j).ne.0) then
                 call StoreData(i,
      $           datain(i,j),
@@ -236,14 +235,12 @@ C        Loop over data points
      $           0.,
      $           nSystIn,
      $           systin(:,i,j),
-     $           Insname,
+     $           Inidxsys, Insystype,
      $           j)
-
 
             endif
          enddo
       enddo
-
       
 C     Perform the averaging:
       call Averaging
@@ -271,11 +268,9 @@ C     Fill output information
 
 C     Fill data pulls
       do iFile=1,NInputFiles
-         ndf  =  0   !> Count points in each file
          do if2=1,NMeas
             do iexp=1,NMeasF2(if2) !NMeas
                if (F2DataFile(if2,iexp).eq.IFile) then
-                  ndf = ndf + 1
                   sum = F2TAB(if2,iexp)
                   do isys=1,NSYSTOT
                      sum = sum + SYSTAB(isys,if2,iexp)*SYSSH(isys)
@@ -295,21 +290,7 @@ C     Fill data pulls
       enddo
 
 C     Fill Chi^2 and NDoF
-      ndof=ndf
-      chi2 = 0.0
-      do i = 1, NMeas
-         do j = 1, NMeasF2(i)
-            sum = F2TAB(i,j)
-            do isys = 1, NSYSTOT
-               sum = sum + SYSTAB(isys,i,j)*SYSSH(isys)
-            enddo
-            chi2loc = (F2VAVE(i)-sum)/ (F2ETAB(i,j))
-            chi2 = chi2 + chi2loc**2
-         enddo
-      enddo
-      do isys=1,NSYSTOT
-         chi2 = chi2 + SYSSH(isys)**2
-      enddo
+      call CalcChi2(chi2, ndof)
 
 C--------------------------------------------------------------------
       end subroutine average

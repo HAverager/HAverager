@@ -226,12 +226,12 @@ C------------------------------------------------------------
       if (AverageType .eq. 'ADD') then
         write(*,*) 'Uncertainties treated as Additive'
         do k  = 1, NSysTot
-          SystematicForm(k) = 'ADD'
+          SysForm(k) = 11
         enddo
       elseif (AverageType .eq. 'MULT') then
         write(*,*) 'Uncertainties treated as Multiplicative'
         do k  = 1, NSysTot
-          SystematicForm(k) = 'MULT'
+          SysForm(k) = 21
         enddo
       elseif (AverageType .eq. 'MIXED') then
         write(*,*) 'Uncertainties treatment is read from the datasets'

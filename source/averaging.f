@@ -19,10 +19,9 @@ c      if (.false.) then
 
 C     Loop over offset systematics
       print *,"Run offset systematics"
-      do i=1,0! (2*NSYSOTOT)
+      do i=1,(2*NSYSOTOT)
 
           print *,"Current offset systematic: ",i,"/",(2*NSYSOTOT)
-
 
 C     Recalculate central values to estimate given offset systematics
 C     Do nothing is case of nominal
@@ -79,6 +78,22 @@ C     Loop over all point and measurements
       do iP=1,NMeas
         do idata=1,NMeasF2(iP)
           F2TAB(ip,idata) = F2TABOrig(ip,idata)
+
+          F2ETAB(ip,idata) = F2ETABOrig(ip,idata)
+          do iSyst=1,NSYSOTOT
+
+        if(SysForm(iSyst).eq.12 .or.
+     &      SysForm(iSyst).eq.22)then
+          SysTab(iSyst,ip,idata) =
+     &     (SYSTABOrig(iSyst,ip,idata,1) -
+     &     SYSTABOrig(iSyst,ip,idata,2))/2
+        else if(SysForm(iSyst).eq. 11 .or. 
+     &    SysForm(iSyst).eq. 21 ) then
+          SysTab(iSyst,ip,idata) =
+     $     SYSTABOrig(iSyst,ip,idata,1)
+        endif
+
+          enddo
         enddo
       enddo
 
@@ -123,7 +138,7 @@ C     Loop over iterations
 
 C     If there is a multiplicative treatment, recalculate stat errors and repeat the average:
           if (iItr.ne.0) then
-c              Call StatRecalc
+              Call StatRecalc
           endif
 
 C         Prepare the system of equations
@@ -134,8 +149,6 @@ C         Copy all arrays
           corrs(1:NSysTot,1:NMeas) = corr(1:NSysTot,1:NMeas) 
           boxs(1:NsysTot,1:NsysTot) = box(1:NsysTot,1:NsysTot)
           lasts(1:NMeas+NSysTot) = last(1:NMeas+NSysTot)
-
-          print *,'BOX',box(1,1)
           
 C         Find averaged value and systematics:
           Call ToBlockDiag(diags,lasts,corrs,boxs) 

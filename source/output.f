@@ -121,7 +121,7 @@ C ... but a comment line first ...
 
          write (53,'(5A12,100A32)') 'Average', 'Stat','Uncor  ',
      $        (SystematicName(isys),isys=1,NSYSTOT),
-     $        (SystematicOName(isysOff),isysOff=1,NSYSOTOT)
+     $        (SystematicName(NSYSTMAX+isysOff),isysOff=1,NSYSOTOT)
 
 
          do if2=1,NMeas

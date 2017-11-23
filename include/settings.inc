@@ -6,14 +6,15 @@ C
       integer nmeasmax  ! Max. number of measurements (H1 CC, NC etc)
       integer nf2max    ! max. number of F2 points
       integer nsystmax  ! max. number of systematic uncertainties
+      integer nsystomax  ! max. number of systematic uncertainties
       integer NREACTMAX ! max. number of types of measurements
       integer NMaxShiftType ! Max. number of type of shifts: Symmetric,Up,Down
 
 C Sizes:
-      parameter (NMEASMAX=20,
-     $     NF2MAX=3000,NSYSTMAX=3000,NREACTMAX=10)
+      parameter (NMEASMAX=20,NF2MAX=1000,
+     $     NSYSTMAX=1000,NSYSTOMAX=10,NREACTMAX=10)
       parameter (NDimensionMax=10)
-      parameter (NMaxShiftType=3)   !> Max. number of type of shifts: Symmetric,Up,Down
+      parameter (NMaxShiftType=2)   !> Max. number of type of shifts: Symmetric,Up,Down
 
 !> Grid information
       integer NGridMax     !> Total number of grids

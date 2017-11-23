@@ -1,21 +1,21 @@
 
 C Input tables:
 
-      character*132 SystematicName(NSYSTMAX)   ! name of systematic errors
-      character*1 SystematicForm(NSYSTMAX)   ! way of precessing systematic errors: M - Multiplicative, A - additive
-      integer ShiftType(NSYSTMAX,NF2MAX,NMEASMAX) ! type of systematics shift: symmetric - 1, Up - 2, Down - 3  
+      character*132 SystematicName(NSYSTMAX+NSYSTOMAX)   ! name of systematic errors
+
+C     Way of precessing systematic errors: 
+C     1x - Multiplicative, 2x - additive
+C     x1 - symmetric, x2 asymmetric    
+      integer SysForm(NSYSTMAX+NSYSTOMAX)   ! 
       
 
-      real*8 SYSTAB(NSYSTMAX,NF2MAX,NMEASMAX) ! Table of all syst. dependences
-      real*8 SYSTABOrig(NSYSTMAX,NF2MAX,NMEASMAX,NMaxShiftType) ! Table of all syst. dependences
+      real*8 SYSTAB(NSYSTMAX,NF2MAX,NMEASMAX)  ! Table of all syst. dependences
+      real*8 SYSTABOrig(NSYSTMAX+NSYSTOMAX,NF2MAX,
+     &                 NMEASMAX,NMaxShiftType) ! Table of all syst. dependences
       real*8 F2TAB(NF2MAX,NMEASMAX)            ! Table of all meas. values 
       real*8 F2TABOrig(NF2MAX,NMEASMAX)        ! Table of all original meas. values      
       real*8 F2ETAB(NF2MAX,NMEASMAX)           ! Table of all errors.
       real*8 F2ETABOrig(NF2MAX,NMEASMAX)       ! Table of all original errors.
-
-      real*8 SYSTABOOrig(NSYSTMAX,NF2MAX,NMEASMAX,NMaxShiftType) ! Table of offset syst. dependences  
-      character*132 SystematicOName(NSYSTMAX)   ! name of offset systematic errors
-      integer ShiftOType(NSYSTMAX,NF2MAX,NMEASMAX) ! type of offset systematics shift: symmetric - 1, Up - 2, Down - 3      
 
 
 C !> Indicies to grid, reaction:
@@ -41,12 +41,7 @@ C Reference back to the data file:
       
 
       common/CHFSyst/SystematicName,
-     $     SystematicForm,
-     $     ShiftType,
-     $     ShiftOType,
-     $     SystematicOName,
-     $     SYSTABOOrig
-
+     $     SysForm
 
       Common/CF2/F2TAB,F2ETAB,F2ETABOrig,SYSTAB,
      $     SYSTABOrig,F2TABOrig,

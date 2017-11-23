@@ -38,7 +38,7 @@ C Calc As'^-1 (box) and (last) Bave = As'^-1 (Cs − Asm^T Am^-1 Cm)
 
       call cpu_time(time2)
       print *,'Inversion = ',time1,time2,time2-time1,NIteration
-      
+
       if (IFail.ne.0) then
          call hf_errlog(1,'F:Failed to invert syst. matrix !!!') 
       endif
@@ -387,7 +387,7 @@ C Print symmary for averaged values
       enddo
 
       print *,' '
-      print '(''TOTAL Chi2/ndf='',F10.4,''/'',i4)',chi2,ndf-NMeas
+      print '(''TOTAL Chi2/ndf='',F10.4,''/'',i4)',chi2,ndf
       print *,' '
 
       end
@@ -415,5 +415,5 @@ C Calculate CHI2 according to the formula for chi2:
       do isys=1,NSYSTOT
          chi2 = chi2 + SYSSH(isys)**2
       enddo
-
+      ndf = ndf-NMeas
       end
