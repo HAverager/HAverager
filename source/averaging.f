@@ -113,11 +113,11 @@ C     Calculate offset systematics
 
 C     Averaging of data from different experiments
       Subroutine RunIterativeAveraging(diag,last,corr,box,
-     & onlyLast,lastItr)
+     & fillSyst,lastItr)
 
       implicit none
       include 'common.inc'
-      logical onlyLast
+      logical fillSyst
       logical lastItr
       integer i,j,k
 
@@ -135,7 +135,7 @@ C     A copy:
 C     Loop over iterations
       do iItr=0,NIteration
 
-          print *,"Iteration",iItr,"/",NIteration,onlyLast
+          print *,"Iteration",iItr,"/",NIteration,fillSyst
 
 C     If there is a multiplicative treatment, recalculate stat errors and repeat the average:
           if (iItr.ne.0) then
@@ -143,7 +143,7 @@ C     If there is a multiplicative treatment, recalculate stat errors and repeat
           endif
 
 C         Prepare the system of equations
-          Call FillArrays(diag,last,corr,box,onlyLast)
+          Call FillArrays(diag,last,corr,box,fillSyst)
 
 C         Copy all arrays
           diags(1:NMeas) = diag(1:NMeas)

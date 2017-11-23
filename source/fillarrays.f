@@ -1,4 +1,4 @@
-      Subroutine FillArrays(diag,last,corr,box,onlyLast)
+      Subroutine FillArrays(diag,last,corr,box,fillSyst)
 C---------------------------------------------------------------
 C Fill axillary arrays for the matrix inversion
 C---------------------------------------------------------------
@@ -6,7 +6,7 @@ C---------------------------------------------------------------
       include 'common.inc'
       real*8 diag(NF2MAX),Last(NF2MAX+NSYSTMAX),Corr(NSYSTMAX,NF2MAX)
       real*8 Box(NSystmax,NSystmax)
-      logical onlyLast
+      logical fillSyst
 
       real*8 oneOverDiag(NF2Max)
       
@@ -64,11 +64,9 @@ C Count number of SF / X-section points to fit
       enddo
 
 
-C
-C Construct the matrix:
-C
 
-      if(onlyLast)then
+C Construct the matrix with uncertainties:
+      if(fillSyst)then
 
 C Set values to zero:
          do i = 1,NDiag
@@ -165,7 +163,7 @@ C     Add 1 to box diagonal:
          enddo
       else
          print *,'NOT ONLY LAST'
-      endif  ! box part only
+      endif
 
 C Fill in the right side vector:
       do i = 1,NMatr
@@ -190,7 +188,6 @@ C Last column correlation:
          enddo
        enddo
 
-
 C    Fill matrix A' = As - Asm^T Am^-1 Asm
       call cpu_time(time1)
       print *,'here3',time2,time1,time1-time2
@@ -202,7 +199,7 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
          enddo
       enddo
 
-      if (onlylast) then
+      if (fillSyst) then
 
          if (useBlas) then
             allocate(sys1b(NDiag,nsystot))
@@ -242,7 +239,7 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
       
       call cpu_time(time2)
       print *,'here4',time1,time2,time2-time1
-      
+
       if (IDebug. ge. 4) then
          write(*,*) 'debug:'
          print *,'cor'
