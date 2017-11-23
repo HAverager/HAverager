@@ -38,9 +38,9 @@ C     Number of datasets:
       integer NInputFiles  ! number of input files
       common/CNInputFiles/NInputFiles
 
-C     Number of ToyMC tests for stat. error
-      integer nToyMC
-      parameter (nToyMC=1000) 
+C     Maximum number of ToyMC tests for stat. error
+      integer nToyMCMax
+      parameter (nToyMCMax=1000) 
 
 C Namelist  variables:
       integer ndataMax,ncolumnMax
@@ -66,7 +66,7 @@ C Number of common Bins (=NDiag):
       integer NName ! number of files
       integer NIteration, iItr ! number of iteration in case of multiplicative error treatment
       integer iOutput  ! OutputType
-
+      integer nToyMC
 
 C-
       logical PostRotateSyst  ! rotate syst. after combination along the original sources
@@ -94,6 +94,7 @@ C
 C Average control:
       logical AveSameExp
       logical UseBlas
+      logical doSystImpact   
 
       Common/CF2Pars2/NMEAS,NF2TOT,NSYSTOT
      $     ,NSFSEC 
@@ -108,6 +109,8 @@ C Average control:
      $     ,NMEASF2
      $     ,iOutput
      $     ,UseBlas
+     $     ,doSystImpact
+     $     ,nToyMC
 
 C Parameters:
       Common/CPARS/Match_parameter

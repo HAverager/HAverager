@@ -7,10 +7,12 @@ C     Module with input paratemetrs
       logical InPostRotateSyst
 
       integer InIteration
+      integer InNToyMC
       logical InRescaleStatSep
       logical InCorrectStatBias
       logical InFixStat
       logical InUseBlas
+      logical IndoSystImpact
       character(len=128), allocatable :: Insname(:)
       integer, allocatable ::  Inidxsys(:)
       integer, allocatable ::  Insystype(:)
@@ -36,10 +38,12 @@ C     Initialization of steerable parameters with default values
           OutputFolder = 'output'
 
           InIteration = 10
+          InNToyMC = 0
           InRescaleStatSep = .false.
           InCorrectStatBias = .false.
           InFixStat = .false.
           InUseBlas = .false.
+          IndoSystImpact = .false.
           init = 777
       end subroutine initVariables
 
@@ -156,6 +160,8 @@ C     Fill input parameters
       CorrectStatBias = InCorrectStatBias
       FixStat = InFixStat
       UseBlas = InUseBlas
+      doSystImpact = IndoSystImpact
+      NToyMC = InNToyMC
 
 C     Create output directory
       CALL system("mkdir -p "//trim(OutputFolder))
@@ -171,6 +177,8 @@ C     Print initial variables
       print *,'RescaleStatSep:          ',RescaleStatSep
       print *,'FixStat:                 ',FixStat
       print *,'UseBlas:                 ',UseBlas
+      print *,'Check syst impact:       ',doSystImpact
+      print *,'Number of Toy MC:        ',NToyMC
       print *,'Output folder:           ',OutputFolder
 
 

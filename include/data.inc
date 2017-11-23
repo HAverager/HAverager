@@ -72,7 +72,7 @@ C Output:
       real*8 SYSSHItr(NSYSTMAX,0:NIterMax)    ! Shifts of the systematics for all iterations
       real*8 F2VaveOSyst(NF2MAX,NSYSTMAX) ! Averaged values with all offset systematics
       real*8 F2VaveSyst(NF2MAX,NSYSTMAX) ! Averaged values with all syst. shifts
-      real*8 F2VaveToyMCStat(NF2MAX,nToyMC) ! Averaged values with all ToyMC systematics
+      real*8 F2VaveToyMCStat(NF2MAX,nToyMCMax) ! Averaged values with all ToyMC systematics
       real Chi2Itr(0:NIterMax) ! Chi2 value for all iterations
 
       Common/CF2out/F2Vave,F2Eave,F2Estave,F2EstAveTrue,F2Esyave,

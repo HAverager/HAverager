@@ -14,13 +14,19 @@ C     Write output in X-Fitter format
       call writeXFitterOut()
 
 C     Write summary for off-set systematics
-      call outOffsetSyst()
+      if(NSYSOTOT .gt. 0)then
+          call outOffsetSyst()
+      endif
 
 C     Write summary for impact of systematics
-      call outSystImpact()
+      if(doSystImpact)then
+          call outSystImpact()
+      endif
 
 C     Write summary for stat. ToyMC
-      call outToyMCStat
+      if(nToyMC .gt. 0)then
+          call outToyMCStat
+      endif
 
 C     Write systematics shifts and pulls
       call WriteSystShifts()

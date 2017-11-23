@@ -14,9 +14,6 @@ C--------------------------------------------------------------
 
 C Allocate arrays:
 
-c      if (.false.) then
-      
-
 C     Loop over offset systematics
       print *,"Run offset systematics"
       do i=1,(2*NSYSOTOT)
@@ -37,9 +34,10 @@ C     Calculate offset systematics
 
 
 C     Check impact of systametics 
+      if(doSystImpact)then
 C     Loop over all non-offset systematics     
       print *,"Run syst. shifts" 
-      do i=1,0 ! (2*NSYSTOT)
+      do i=1,(2*NSYSTOT)
 
           print *,"Current systematic: ",i,"/",(2*NSYSTOT)
 
@@ -50,11 +48,13 @@ C     Recalculate central values to estimate given systematics
 
           call SaveAverageValue(i)
       enddo
+      endif
 
 C     Run ToyMC for statistical uncertainties
+      if(nToyMC .gt. 0)then
 C     Loop over ToyMC shifts     
       print *,"Run stat ToyMC" 
-      do i=1,0 ! (nToyMC)
+      do i=1,(nToyMC)
 
           print *,"Current ToyMC: ",i,"/",(nToyMC)
 
@@ -67,9 +67,8 @@ C     Recalculate central values to estimate given systematics
       enddo
 
 C     Calculate ToyMC systematics
-cc      call CalcToyMCStat()
-c      endif
-
+      call CalcToyMCStat()
+      endif
 
 C     Run nominal averaging
       print *,"Run nominal averaging"
@@ -104,7 +103,9 @@ C     Analyse systematic shifts over iterations
       Call AnalyseShifts()
 
 C     Calculate offset systematics
-      call CalcSystImpact()
+      if(doSystImpact)then
+          call CalcSystImpact()
+      endif
 
       end
 
@@ -153,7 +154,7 @@ C         Copy all arrays
 C         Find averaged value and systematics:
           Call ToBlockDiag(diags,lasts,corrs,boxs) 
       enddo
-      !stop
+
       call cpu_time(time1)
       print *,'here3',time2,time1,time1-time2
       if(lastItr)then
