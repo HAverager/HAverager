@@ -22,6 +22,8 @@ C     Module with input paratemetrs
 C     Deallocate all vars
       subroutine cleanInVars
       if ( allocated( Insname )) Deallocate ( Insname )
+      if ( allocated( Inidxsys )) Deallocate ( Inidxsys )
+      if ( allocated( Insystype )) Deallocate ( Insystype )
       end subroutine cleanInVars
 
 C     Initialization of steerable parameters with default values
