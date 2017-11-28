@@ -4,16 +4,20 @@ C     Averaging of data from different experiments
       implicit none
       include 'common.inc'
 C     Intermediate dimensions:
-      real*8
-     $     DIAG(NF2MAX),LAST(NF2MAX+NSYSTMAX),CORR(NSYSTMAX,NF2MAX)
-      real*8  Box(NSYSTMAX,NSYSTMAX)
+      real*8, allocatable :: DIAG(:), LAST(:), CORR(:,:)
+      real*8, allocatable :: Box(:,:)
 
       integer i,iP,idata,iSyst
 C--------------------------------------------------------------
       print *,"Number of systematics",NSYSTOT,NSYSOTOT
+      print *,"Number of common data points ", NMeas
 
-C Allocate arrays:
-
+C     Allocate arrays:
+      allocate(Box(NSYSTOT,NSYSTOT))
+      allocate(DIAG(NMeas))      
+      allocate(LAST(NSYSTOT+NMeas))    
+      allocate(CORR(NSYSTOT,NMeas)) 
+   
 C     Loop over offset systematics
       print *,"Run offset systematics"
       do i=1,(2*NSYSOTOT)
@@ -21,8 +25,6 @@ C     Loop over offset systematics
           print *,"Current offset systematic: ",i,"/",(2*NSYSOTOT)
 
 C     Recalculate central values to estimate given offset systematics
-C     Do nothing is case of nominal
-C     Run nominal at the end
           call ActivateOffsetSystematic(i)
 
           call RunIterativeAveraging(diag,last,corr,box,.true.,.false.)
@@ -100,12 +102,17 @@ C     Loop over all point and measurements
 
 
 C     Analyse systematic shifts over iterations
-      Call AnalyseShifts()
+C     Call AnalyseShifts()
 
 C     Calculate offset systematics
       if(doSystImpact)then
           call CalcSystImpact()
       endif
+
+      deallocate(Box)
+      deallocate(DIAG)
+      deallocate(LAST)
+      deallocate(CORR)
 
       end
 
@@ -122,15 +129,20 @@ C     Averaging of data from different experiments
       integer i,j,k
 
       real*8
-     $     DIAG(NF2MAX),LAST(NF2MAX+NSYSTMAX),CORR(NSYSTMAX,NF2MAX)
-      real*8  Box(NSYSTMAX,NSYSTMAX)
+     $     DIAG(NMeas),LAST(NMeas+NSYSTOT),CORR(NSYSTOT,NMeas)
+      real*8  Box(NSYSTOT,NSYSTOT)
 
 C     A copy:
-      real*8 boxs(NSYSTMAX,NSYSTMAX)
-      real*8 Diags(NF2MAX),Lasts(NF2MAX+NSYSTMAX)
-     $     ,CORRs(NSYSTMAX,NF2MAX)
+      real*8, allocatable :: boxs(:,:)
+      real*8, allocatable :: Diags(:), Lasts(:), CORRs(:,:)
 
       double precision time1,time2
+
+C     Allocate arrays:
+      allocate(boxs(NSYSTOT,NSYSTOT))
+      allocate(DIAGs(NMeas))
+      allocate(LASTs(NSYSTOT+NMeas))
+      allocate(CORRs(NSYSTOT,NMeas))
 
 C     Loop over iterations
       do iItr=0,NIteration
@@ -164,5 +176,10 @@ C       Do not run for offset systematics
       endif
       call cpu_time(time2)
       print *,'LastItr: ',time2,time1,time2-time1
+
+      deallocate(boxs)
+      deallocate(DIAGs)
+      deallocate(LASTs)
+      deallocate(CORRs)
       end
 

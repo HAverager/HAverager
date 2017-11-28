@@ -4,65 +4,39 @@ C Fill axillary arrays for the matrix inversion
 C---------------------------------------------------------------
       implicit none
       include 'common.inc'
-      real*8 diag(NF2MAX),Last(NF2MAX+NSYSTMAX),Corr(NSYSTMAX,NF2MAX)
-      real*8 Box(NSystmax,NSystmax)
+      real*8 diag(NMeas),Last(NMeas+NSystot),Corr(NSystot,NMeas)
+      real*8 Box(NSystot,NSystot)
       logical fillSyst
 
-      real*8 oneOverDiag(NF2Max)
-      
-C Local:
+C     Local:
       integer isys,if2,iexp,i,j,k,isys1,isys2
       integer noff
       integer NDiag, NMatr
       real*8 coef, erro
 
-      real*8 work(nf2max+nsystmax)
-      integer ifail
-      integer ip(nf2max+nsystmax)
-
       real*8, allocatable :: err2tab(:,:)
+      real*8, allocatable :: oneOverDiag(:)
 
       double precision time1,time2
 
       real*8, allocatable :: sys1(:,:),sys2(:,:)
       real*8, allocatable :: sys1b(:,:),sys2b(:,:)
-      logical lfirst
-      data lfirst/.true./
       integer NdataT,idataT
    
 C---------------------------------------------------------------------
-
-
-
-      if (lfirst)  then
-         NdataT = 0
-         do i=1,NMeas
-            do j=1,NMeasF2(i)
-               NdataT = NdataT + 1
-            enddo
-         enddo
-         lfirst = .false.
-      endif
       
-C Count number of SF / X-section points to fit 
-
-      NDiag = NMeas !min(NMeas,NPointGrid(1)) !idxReaction <= IMPROVE      !NF2TOT
+C     Count number of SF / X-section points to fit
+      NDiag = NMeas !min(NMeas,NPointGrid(1)) !idxReaction <= IMPROVE
       NMatr = NDiag+NSysTot
 
-      NF2TOT = NDiag
-      NSFSEC = NF2TOT
-
-      !NSysTot = NSysTot - 1  ! because the stat uncertainty is not included
-
-
-      Allocate (err2tab(NDiag,NMEASMAX)) ! !
+      Allocate (err2tab(NMeas,NMEASMAX))
+      Allocate (oneOverDiag(NMeas))
 
       do i=1,NDiag
          do j=1, NMeasF2(i)
             err2tab(i,j) = 1./F2ETAB(i,j)**2
          enddo
       enddo
-
 
 
 C Construct the matrix with uncertainties:
@@ -105,6 +79,9 @@ C Fill in the rectangle correlation matrix (Asm):
             enddo
          enddo
 
+C      print *,Corr(1:2,1:3)
+C      print *,'2TAB',err2tab(1:NDiag,1:2)
+C      print *,'SYSTAB',SYSTAB(1:NSysTot,1:NDiag,1:2)
 
 C Fill in the box matrix (As):
 
@@ -112,7 +89,10 @@ C Fill in the box matrix (As):
          print *,'here',time1
 
          if (useBlas) then
-         
+           NdataT = 0
+           do i=1,NMeas
+             NdataT = NdataT + NMeasF2(i)
+           enddo
 ! perpare arrays:
             allocate(sys1(nsystot,NDataT))
             allocate(sys2(NDataT,nsystot))
@@ -126,13 +106,12 @@ C Fill in the box matrix (As):
                   enddo
                enddo
             enddo
-         
          ! BLAS:
             call dgemm('N','N',nsystot,nsystot, nDataT, 1.0D0,
-     $           sys1, nsystot, sys2, NDataT, 0.D0, box, nsystmax)
-
+     $           sys1, nsystot, sys2, NDataT, 0.D0, box, nsystot)
             deallocate(sys1)
-            deallocate(sys2)        
+            deallocate(sys2)  
+
          else
             do i     = 1,NDiag
                do j     = 1, NMeasF2(i)
@@ -213,7 +192,7 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
 
          ! BLAS:
             call dgemm('N','N',nsystot,nsystot, ndiag, 1.D0,
-     $           sys2b, nsystot, sys1b, Ndiag, 1.D0, box, nsystmax)
+     $           sys2b, nsystot, sys1b, Ndiag, 1.D0, box, nsystot)
 
             deallocate(sys1b)
             deallocate(sys2b)
@@ -258,7 +237,8 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
       call cpu_time(time1)
       print *,'here5',time2,time1,time1-time2
 
-      DeAllocate( err2tab)
+      DeAllocate(err2tab)
+      deAllocate(oneOverDiag)
 C-------------------------------------
       end
 

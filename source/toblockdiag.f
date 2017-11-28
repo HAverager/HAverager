@@ -5,13 +5,13 @@ C are modified
 C---------------------------------------------------------------
       implicit none
       include 'common.inc'
-      real*8 diag(NF2MAX),Last(NF2MAX+NSYSTMAX),Corr(NSYSTMAX,NF2MAX)
-      real*8 Box(NSYSTMAX,NSYSTMAX) ! Original syst --> covariance matrix
-C Local:
+      real*8 diag(NMeas),Last(NMeas+NSYSTOT),Corr(NSYSTOT,NMeas)
+      real*8 Box(NSYSTOT,NSYSTOT) ! Original syst --> covariance matrix
+C     Local:
       integer if2,isys,j,iexp
       real*8  SUM
 
-      real*8 work(NSYSTMAX)
+      real*8 work(NSYSTOT)
       integer ifail
 
       integer NDiag
@@ -20,19 +20,19 @@ C Local:
 C---------------------------------------------------------------------
 
 
-C Prepare vaiables:
+C     Prepare vaiables:
       NDiag = NMeas 
 
       call cpu_time(time1)
 
-C Invert box matrix corresponding in order to get systematic uncertainties:
+C     Invert box matrix corresponding in order to get systematic uncertainties:
       if (NSYSTOT.ne.0) then
         if (iItr.ne.NIteration) then
-C Solve without inversion (faster):
-          Call DEQN(nsystot,box,nsystmax,work,ifail,1,last(NDiag+1))
+C     Solve without inversion (faster):
+          Call DEQN(nsystot,box,nsystot,work,ifail,1,last(NDiag+1))
         else
 C Calc As'^-1 (box) and (last) Bave = As'^-1 (Cs − Asm^T Am^-1 Cm)
-          Call DEQINV(nsystot,box,nsystmax,work,ifail,1,last(NDiag+1))
+          Call DEQINV(nsystot,box,nsystot,work,ifail,1,last(NDiag+1))
         endif
       endif
 
@@ -43,6 +43,7 @@ C Calc As'^-1 (box) and (last) Bave = As'^-1 (Cs − Asm^T Am^-1 Cm)
          call hf_errlog(1,'F:Failed to invert syst. matrix !!!') 
       endif
 
+      print *,'last',last
       
       do j=1,NSYSTOT
          SYSSHItr(j,iItr) = last(NDiag+j)
@@ -69,15 +70,14 @@ C---------------------------------------------------
       subroutine LastIteration(diag,last,corr,boxinv,box)
       implicit none
       include 'common.inc'
-      real*8 diag(NF2MAX),Last(NF2MAX+NSYSTMAX),Corr(NSYSTMAX,NF2MAX)
-      real*8 Box(NSYSTMAX,NSYSTMAX) ! Covariance matrix As'
-      real*8 Boxinv(NSYSTMAX,NSYSTMAX) ! Inverted Covariance matrix As'^-1
+      real*8 diag(NMeas),Last(NMeas+NSYSTOT),Corr(NSYSTOT,NMeas)
+      real*8 Box(NSYSTOT,NSYSTOT) ! Covariance matrix As'
+      real*8 Boxinv(NSYSTOT,NSYSTOT) ! Inverted Covariance matrix As'^-1
 
       real*8 Corr2(NSYSTMAX,NF2MAX)  !  Rotated systematics:
       real*8 chi2
       integer i,j,if2, ifail, imeas, ipc, isys1, isys2, isys
-      real*8 work(NSYSTMAX)
-      real*8 WWW(NSYSTMAX)  ! Eigenvalues
+      real*8 WWW(NSYSTOT)  ! Eigenvalues
       real*8 sum
       integer ndf
       real sterr,uncerr,toterr
@@ -175,7 +175,7 @@ C      Call PrintMatrix(box)
 C Get eigenvectors and eigenvalues:
 C WWW - eigenvalues D^2 in ascending order of As'
 C (box) = eigenvectors U of the matrix As' (box)
-      Call MyDSYEVD(NSysTot, Box, NSystMax,WWW,ifail)
+      Call MyDSYEVD(NSysTot, Box, NSysTot,WWW,ifail)
 
       call cpu_time(time1)
       print *,'Decomposition = ',time1,time2,time1-time2
@@ -195,7 +195,7 @@ C Post-process Box3, make it triangular and positive along the diagonal
       if (PostRotateSyst) then
          call HF_ERRLOG(15030701,
      $ 'I:Rotate systematic error sources along original directions')
-         Call PostRotate(nsystot,nsystmax,box)
+         Call PostRotate(nsystot,box)
       endif
 
 C     Print the eigenvalues and eigenvectors
@@ -252,10 +252,10 @@ C---------------------------------------------------------------------
 
 
 
-      Subroutine PostRotate( Nsystot, nsystmax,box3)
+      Subroutine PostRotate(Nsystot, box3)
       implicit none
-      integer NSysTot, NSystMax
-      double precision Box3(NSystMax,NSystMax)
+      integer NSysTot
+      double precision Box3(Nsystot,Nsystot)
 C Dynamic:
       double precision RR(NSysTot,Nsystot)
       double precision AA2(NSysTot,Nsystot)
