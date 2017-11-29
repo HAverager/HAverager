@@ -19,7 +19,6 @@ C     Local:
       double precision time1,time2
 C---------------------------------------------------------------------
 
-
 C     Prepare vaiables:
       NDiag = NMeas 
 
@@ -42,8 +41,6 @@ C Calc As'^-1 (box) and (last) Bave = As'^-1 (Cs − Asm^T Am^-1 Cm)
       if (IFail.ne.0) then
          call hf_errlog(1,'F:Failed to invert syst. matrix !!!') 
       endif
-
-      print *,'last',last
       
       do j=1,NSYSTOT
          SYSSHItr(j,iItr) = last(NDiag+j)

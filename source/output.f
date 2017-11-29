@@ -477,8 +477,8 @@ C     Print the eigenvalues and eigenvectors
         implicit none
         include 'common.inc'
         integer isys1,isys2
-        real*8 WWW(NSYSTMAX)
-        real*8 Box3(NSYSTMAX,NSYSTMAX)
+        real*8 WWW(NSYSTot)
+        real*8 Box3(NSYSTot,NSYSTot)
 
          open (51,file=trim(OutputFolder)//'/eigvalues.dat',
      $       status='unknown')
