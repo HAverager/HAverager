@@ -1,21 +1,32 @@
 #!/usr/bin/env python
 
 import numpy as np
+from optparse import OptionParser
 
 # Dataset generator is a script to produce fake datasets in order to test averager
 
 ########################
 # setup input parameters
 ########################
+usage = ("DatasetGen.py parameters \nCreate dataset with gaussian uncertainties.  \n")
+parser = OptionParser(usage)
+parser.add_option("-d",dest="nData", default=50, type="int", help="Number of data points")
+parser.add_option("-m",dest="nMes", default=2, type="int", help="Number of measurements")
+parser.add_option("-s",dest="nSyst", default=10, type="int", help="Number of systematic sources")
+
+parser.add_option("-M", dest="zMes", default=0.99, type="float", help="Fraction of non-emply measurements")
+parser.add_option("-S", dest="zSyst", default=0.99, type="float", help="Fraction of non-emply systematics")
+
+options, arguments = parser.parse_args()
 
 # Number of data points, measurements, systematic
-nData = 10
-nMes = 2
-nSyst = 5
+nData = options.nData
+nMes = options.nMes
+nSyst = options.nSyst
 
 # part of non-emply measurement/systematics (between 0 and 1)
-zMes = 0.99 
-zSyst = 0.99
+zMes = options.zMes
+zSyst = options.zSyst
 
 # Min and mix number of measurements for data point (have to be smaller as total number of measurements) 
 #rMes = [1,3]
@@ -32,7 +43,7 @@ vSyst = [0.08,0.11]
 
 
 # array of truth data points
-Tdata = nData*np.random.random_sample((nData))
+Tdata = nData*np.random.random_sample((nData))+1
 
 # array of truth nuisanse parameters
 Tshift = np.random.normal(0, 1, nSyst)
@@ -71,9 +82,9 @@ for m in range(nMes):
 	f.write('\n')
 	# Loop over data point
 	for d in range(nData):
-		if(Mdata[m][d]!=0):
+		if(np.abs(Mdata[m][d])>0.1):
 			f.write('%4.0f,'% d)
-			f.write('%8.3f,'% (Mdata[m][d]))		
+			f.write('%8.3f,'% (Mdata[m][d]))
 			f.write('%8.3f'% (Mstat[m][d]*Mdata[m][d]))	
 			# Loop over systematics
 			for s in range(nSyst):
