@@ -88,6 +88,8 @@ C     Mudule with output variables
       real*8,allocatable :: shiftsyst(:)
       real*8,allocatable :: squeezesyst(:)
       real*8,allocatable :: pulldata(:,:)
+      real*8,allocatable :: sysimpact(:,:)
+      real*8,allocatable :: toystat(:)
       real*8 :: chi2
       integer :: ndof
       end module AvOut
@@ -98,6 +100,8 @@ C     Mudule with output variables
       if (allocated(shiftsyst)) deallocate(shiftsyst)
       if (allocated(squeezesyst)) deallocate(squeezesyst)
       if (allocated(pulldata)) deallocate(pulldata)
+      if (allocated(sysimpact)) deallocate(sysimpact)
+      if (allocated(toystat)) deallocate(toystat)
       end subroutine cleanOutVars
 
 C     Averaging
@@ -263,16 +267,29 @@ C     Fill output information
       allocate(shiftsyst(nsysTot))
       allocate(squeezesyst(nsysTot))
       allocate(pulldata(NInputFiles,NMeas))
+      allocate(sysimpact(nsysTot,NMeas))
+      allocate(toystat(NMeas))
 
       do i=1,NMeas
          dataOut(i) = f2vave(i)
-         statOut(i) = f2eAve(i)
+         statOut(i) = F2EstAve(i)
+         if(nToyMC .gt. 0)then
+            toystat(i) = StatToyMC(i)
+         else
+            toystat(i) = 0
+         endif
          do k=1,nsysTot
-            systOut(k,i) =  SystDiagPercent(k,i)/100.* dataOut(i) 
+            systOut(k,i) =  SystDiag(k,i)
             pullsyst(k) = SYSSH(k) /
      $            sqrt(1 - errsyst(k)*errsyst(k))
             shiftsyst(k) = SYSSH(k)
             squeezesyst(k) = errsyst(k)
+            if(doSystImpact)then
+               sysimpact(k,i) = 
+     $    (F2VaveSyst(i,2*k)-F2VaveSyst(i,2*k-1))*0.5
+            else
+               sysimpact(k,i) = 0
+            endif
          enddo
       enddo
 
