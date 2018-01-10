@@ -17,6 +17,9 @@ parser.add_option("-s",dest="nSyst", default=10, type="int", help="Number of sys
 parser.add_option("-M", dest="zMes", default=0.99, type="float", help="Fraction of non-emply measurements")
 parser.add_option("-S", dest="zSyst", default=0.99, type="float", help="Fraction of non-emply systematics")
 
+parser.add_option("--Poisson", action="store_true", dest="poisson", default=False, help="Use poissonian statistical uncertainties")
+parser.add_option("--Smear", action="store_true", dest="smear", default=False, help="Systematic uncertainties are affected by statistics")
+
 options, arguments = parser.parse_args()
 
 # Number of data points, measurements, systematic
@@ -28,17 +31,14 @@ nSyst = options.nSyst
 zMes = options.zMes
 zSyst = options.zSyst
 
-# Min and mix number of measurements for data point (have to be smaller as total number of measurements) 
-#rMes = [1,3]
-
-# Min and mix number of systematic uncertainties for measurement (have to be smaller as total number of systematic uncertainties) 
-#rSyst = [3,4]
-
+# Flags
+doPoisson = options.poisson
+doSmear = options.smear
 
 # Parameters of uncertainties
 # Minumal and maximal relative statistical/systematic uncertainty
-vStat = [0.01,0.03]
-vSyst = [0.08,0.11]
+vStat = [0.022,0.045]
+vSyst = [0.03,0.08]
 
 
 
@@ -54,7 +54,28 @@ Mstat = (vStat[1]-vStat[0]) * np.random.random_sample((nMes, nData)) + vStat[0]
 
 # array of systematic uncertainties. 
 # 3D data points vs measurement vs systematic
-Msyst = (vSyst[1]-vSyst[0]) * np.random.random_sample((nMes, nData, nSyst)) + vSyst[0]
+# Systematics are linear across bins: Ax+B
+base = np.ones((nSyst*nMes,nData))
+
+Arnd = ((vSyst[1]-vSyst[0]) * np.random.random_sample(nSyst*nMes) + vSyst[0]).reshape(nSyst*nMes,1)
+Brnd = (((vSyst[1]-vSyst[0]) * np.random.random_sample(nSyst*nMes) + vSyst[0])*np.sign(np.random.random_sample(nSyst*nMes)-0.5)).reshape(nSyst*nMes,1)
+
+F = np.linspace(0.1,1.1,num=nData)
+
+AXpB =  Arnd*base*F + Brnd
+SystBase = AXpB.reshape(nMes,nSyst,nData)
+
+if(doSmear):
+	# Gaussian statistical fluctuation of the systematic uncertainties
+	print 'Systematic uncertainties are smeared by statistics'
+	Gaus3D  =  np.random.normal(0, 1, nMes*nData*nSyst).reshape((nMes, nSyst, nData))
+	Msyst = (SystBase + ( Mstat.reshape(nMes,1,nData) * Gaus3D)).swapaxes(1,2)
+else:
+	# No statistical component in the systematics
+	print 'Systematic uncertainties are not statistically fluctuated'
+	Msyst = SystBase.swapaxes(1,2)
+
+#Msyst = (vSyst[1]-vSyst[0]) * np.random.random_sample((nMes, nData, nSyst)) + vSyst[0]
 
 # Add holes in the array of measurements and systematics
 # - Some data points does not exists for a certain measurement
@@ -64,8 +85,22 @@ Hdata = np.signbit(np.random.random_sample((nMes, nData))-zMes)*1
 Hsyst = np.signbit(np.random.random_sample((nMes, 1, nSyst))-zSyst)*1
 
 # array of measured data points
-Gaus_ij = np.random.normal(0, 1, nMes*nData).reshape((nMes, nData))
-Mdata = Tdata*(1+(Mstat*Gaus_ij)+np.sum(Msyst*Tshift*Hsyst,axis=2))*Hdata
+if (doPoisson):
+	print 'Use Poissonian statistics \n'
+	# Poisson statistics
+
+	# size of statistics
+	Vstat = 1/Mstat**2
+
+	# Puisson fluctiation
+	Pstat = np.random.poisson(Vstat)
+
+	Mdata = Tdata*(1 + ((Pstat-Vstat)/Vstat) +np.sum(Msyst*Tshift*Hsyst,axis=2))*Hdata
+else:
+	print 'Use Gaussian statistics \n'
+	# Gaussian statistics
+	Gaus_ij = np.random.normal(0, 1, nMes*nData).reshape((nMes, nData))
+	Mdata = Tdata*(1+(Mstat*Gaus_ij)+np.sum(Msyst*Tshift*Hsyst,axis=2))*Hdata
 
 np.savetxt('Tshift.out', Tshift, fmt='%1.3f')
 np.savetxt('Tdata.out', Tdata, fmt='%1.3f')
@@ -85,11 +120,11 @@ for m in range(nMes):
 		if(np.abs(Mdata[m][d])>0.1):
 			f.write('%4.0f,'% d)
 			f.write('%8.3f,'% (Mdata[m][d]))
-			f.write('%8.3f'% (Mstat[m][d]*Mdata[m][d]))	
+			f.write('%8.3f'% (Mstat[m][d]))#*Mdata[m][d]))	
 			# Loop over systematics
 			for s in range(nSyst):
 				if(Hsyst[m][0][s]!=0):
-					f.write(',%8.3f'% (Msyst[m][d][s]*Mdata[m][d]))
+					f.write(',%8.3f'% (Msyst[m][d][s]))#*Mdata[m][d]))
 			f.write('\n')	
 	f.close()
 
@@ -129,3 +164,28 @@ for m in range(nMes):
 			f.write('\n')
 	f.write('\n')
 	f.close()
+
+# Study correlation model
+systBla = Msyst.reshape(nData*nMes,nSyst)
+
+import matplotlib.pyplot as plt
+
+Cov = (systBla).dot(systBla.transpose())
+B  = np.diag(Cov)
+nB = B.size
+C = np.ones((nB,nB))
+D = B.reshape(nB,1)*C*B
+Corr = Cov/np.sqrt(D)
+
+
+def PlotMatrix(matrix, fname, vmin=-1, vmax=1):
+	plt.figure()
+	im = plt.imshow(matrix, interpolation='none', alpha=None, vmin=vmin, vmax=vmax)
+	plt.xlabel('bin number')
+	plt.ylabel('bin number')
+	clb = plt.colorbar()
+	clb.set_label('Correlation', labelpad=-40, y=1.05, rotation=0)
+	plt.savefig(fname)
+
+PlotMatrix(Corr, fname='CorrGen.pdf')
+
