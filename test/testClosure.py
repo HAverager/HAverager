@@ -53,9 +53,9 @@ def RunAverager(data,stat,syst, nToyMC=0, SysImp = False, itr=0, fixStat=False, 
 	#averager.avin.setsnames(snames)
 	averager.avin.inwriteoriginal = True
 
-	averager.avin.infixstat = fixStat
+	averager.avin.infixstat = False #fixStat
 	averager.avin.incorrectstatbias = corrStat
-	averager.avin.inrescalestatsep = False
+	averager.avin.inrescalestatsep = fixStat#False
 
 	averager.avin.inpostrotatesyst = False
 	averager.avin.indosystimpact = SysImp
@@ -157,6 +157,18 @@ plt.close()
 swapdata=swapaxes(data,0,1)
 swapstat=swapaxes(stat,0,1)
 
+# Use last bin as averge over bins
+dataTrue[len(dataTrue)-1] = dataTrue.mean()
+dataAv[len(dataAv)-1] = dataAv.mean()
+dataAv2[len(dataAv2)-1] = dataAv2.mean()
+dataAv3[len(dataAv3)-1] = dataAv3.mean()
+dataAv4[len(dataAv4)-1] = dataAv4.mean()
+dataAv5[len(dataAv5)-1] = dataAv5.mean()
+swapdata[0][len(swapdata[0])-1] = swapdata[0].mean()
+swapdata[1][len(swapdata[1])-1] = swapdata[1].mean()
+statAv[len(dataTrue)-1] = statAv[len(dataTrue)-1]/sqrt(len(dataTrue)-1)
+
+
 bins=arange(len(dataAv))
 plt.figure()
 
@@ -165,9 +177,10 @@ plt.fill_between(bins, 1+(totalAv/dataTrue), 1-(totalAv/dataTrue),
 plt.fill_between(bins, 1+(statAv/dataTrue), 1-(statAv/dataTrue),
     alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF' )
 
+plt.errorbar(bins, map(truediv,dataAv2,dataTrue), yerr=map(truediv,statAv,dataTrue), ecolor='black',marker='o',ls='', markersize='9', label='Mult corr')
 plt.errorbar(bins, map(truediv,dataAv,dataTrue), yerr=map(truediv,statAv,dataTrue), ecolor='black',marker='o',ls='', label='Default')
-plt.errorbar(bins, map(truediv,dataAv2,dataTrue), yerr=map(truediv,statAv,dataTrue), ecolor='black',marker='o',ls='', label='Mult corr')
-plt.errorbar(bins, map(truediv,dataAv5,dataTrue), yerr=map(truediv,statAv,dataTrue), ecolor='black',marker='o',ls='', label='Stat corr')
+
+plt.errorbar(bins, map(truediv,dataAv5,dataTrue), yerr=map(truediv,statAv,dataTrue), ecolor='black',marker='o',ls='', markersize='8', label='Stat corr')
 
 plt.errorbar(bins, map(truediv,dataAv4,dataTrue), yerr=map(truediv,statAv,dataTrue), ecolor='black',marker='o',ls='', label='Stat corr + FixStat')
 
