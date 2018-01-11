@@ -209,7 +209,7 @@ totalBlue = sqrt((BlueVals[:,1:]**2).sum(axis=1) )
 statBlue = BlueVals[:,1]
 systBlue = BlueVals[:,2]
 
-BlueCov = BlueCov + diag(statBlue**2)
+BlueCov = BlueCov
 
 print 'Data Diff \n', (dataAv-dataBlue)/dataAv*100
 print 'Total Diff \n',(totalAv-totalBlue)/totalAv*100
