@@ -19,6 +19,8 @@ parser.add_option("-S", dest="zSyst", default=0.99, type="float", help="Fraction
 
 parser.add_option("--Poisson", action="store_true", dest="poisson", default=False, help="Use poissonian statistical uncertainties")
 parser.add_option("--Smear", action="store_true", dest="smear", default=False, help="Systematic uncertainties are affected by statistics")
+parser.add_option("--Seed", dest="Seed", default=None, type="int", help="Specify seed (default: take system time)")
+
 
 options, arguments = parser.parse_args()
 
@@ -34,6 +36,9 @@ zSyst = options.zSyst
 # Flags
 doPoisson = options.poisson
 doSmear = options.smear
+
+# Seed:
+np.random.seed(options.Seed)
 
 # Parameters of uncertainties
 # Minumal and maximal relative statistical/systematic uncertainty
