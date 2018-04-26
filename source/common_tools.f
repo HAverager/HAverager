@@ -157,11 +157,17 @@ C-----------------------------
 
 C     Define global variable for type of shift >2 - Up/Down shift
       do i = 1, NSys
+        if(iSys(i).eq.0)then
+          continue
+        endif
         SYSTABOrig(iSys(i),idxData,idxP,SysType(i)) = Syst(i)
       enddo
 
 C     Fill SysTab array using SYSTABOrig
       do i = 1, NSys
+        if(iSys(i).eq.0)then
+          continue
+        endif
         if(iSys(i).le. NSYSTMAX)then
         if(SysForm(iSys(i)).eq.12 .or.
      &     SysForm(iSys(i)).eq.22)then
@@ -283,13 +289,14 @@ C------------------------------------------------------
 C-----------------------------------------------------------------------------
 !> Add systematic source (26.10.2015)
 C
-!>  Detect "+" and "-" signs, at the end of source name, for asymmetric errors
+!>  Detect "+" and "-" signs, at the end of source name, for asymmetric errors (x2)
+!>  Symmectic systematic uncertainties marked as (x1)
 !>
 !>  Detect ":" modifiers
 !>
-!>   :M  - "multiplicative"
+!>   :M  - "multiplicative" (1x)
 !>
-!>   :A  - "additive"
+!>   :A  - "additive" (2x)
 !>
 C-----------------------------------------------------------------------------
       subroutine AddSystematics(SName, idx, iSys, sysType)
@@ -298,9 +305,9 @@ C-----------------------------------------------------------------------------
       include 'common.inc'
 
       character*(*) SName
-      integer sysType(*)
-      integer iSys(*)
-      integer idx
+      integer sysType(*) ! type of systematic idx (output)
+      integer iSys(*) ! index of systematic idx in globar array (output)
+      integer idx     ! index of systematic in local array
 
       character *32 CurrentSysName
       character *1 ctmp
@@ -309,8 +316,6 @@ C-----------------------------------------------------------------------------
       integer j
 
 C-----------------------------------------
-
-      print *,"New syst",SName
 
 C---- Cut +/- in the sys name
       if(Index(SName, "+").gt.0) then

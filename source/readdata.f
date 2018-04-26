@@ -34,6 +34,10 @@ C Systematics:
       character *32 SystematicType(nsystMax)
       logical Percent(1:nsystMax)
 
+      integer, allocatable ::  Inidxsys(:)
+      integer, allocatable ::  Insystype(:)
+
+
 C Namelist definition:
       namelist/Data/Name,NData
      $     ,Reaction,Percent
@@ -188,8 +192,16 @@ C Filling with 'dummy' first three names for proper formation of fittedresults.t
 C
 C Prepare systematics:
 C
-      do i=1,NUncert
+C--- Allocate helping variables
+      if ( allocated( Inidxsys )) Deallocate ( Inidxsys )
+      if ( allocated( Insystype )) Deallocate ( Insystype )
 
+      allocate(Inidxsys(NUncert))
+      allocate(Insystype(NUncert))
+
+      do i=1,NUncert
+C--- Ini with 0 value
+         Inidxsys(i) = 0
 C--- Statistical: special case
          if (SystematicType(i).eq.'stat' 
      $        .or. SystematicType(i).eq.'Stat') then
@@ -205,7 +217,8 @@ C--- Ignore: special case - will not be counted
          else if (SystematicType(i).eq.'ignore') then
            continue
          else
-           call AddSystematics(SystematicType(i))
+           call AddSystematics(SystematicType(i), i,
+     $                          Inidxsys, Insystype)
            continue
          endif
       enddo
@@ -386,7 +399,7 @@ C Store extra point:
      $        TotalError,
      $        NUncert,
      $        Syst,
-     $        SystematicType,
+     $        Inidxsys, Insystype,
      $        NName)
 
       else 
@@ -402,7 +415,7 @@ C Store extra point:
      $           TotalError,
      $           NUncert,
      $           Syst,
-     $           SystematicType,
+     $           Inidxsys, Insystype,
      $           NName)
 
          else
@@ -422,8 +435,6 @@ C Pre-average data point:
 
 
  101  continue
-
-C      print *,idxData,StatError
 
       enddo ! NData
 
