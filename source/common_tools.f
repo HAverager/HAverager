@@ -157,10 +157,9 @@ C-----------------------------
 
 C     Define global variable for type of shift >2 - Up/Down shift
       do i = 1, NSys
-        if(iSys(i).eq.0)then
-          continue
+        if(iSys(i).ne.0)then
+          SYSTABOrig(iSys(i),idxData,idxP,SysType(i)) = Syst(i)
         endif
-        SYSTABOrig(iSys(i),idxData,idxP,SysType(i)) = Syst(i)
       enddo
 
 C     Fill SysTab array using SYSTABOrig
