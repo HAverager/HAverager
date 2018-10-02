@@ -14,6 +14,7 @@ C     Module with input paratemetrs
       logical InUseBlas
       logical IndoSystImpact
       character(len=128), allocatable :: Insname(:)
+      character(len=128), allocatable :: Infname(:)
       integer, allocatable ::  Inidxsys(:)
       integer, allocatable ::  Insystype(:)
 
@@ -22,6 +23,7 @@ C     Module with input paratemetrs
 C     Deallocate all vars
       subroutine cleanInVars
       if ( allocated( Insname )) Deallocate ( Insname )
+      if ( allocated( Infname )) Deallocate ( Infname )
       if ( allocated( Inidxsys )) Deallocate ( Inidxsys )
       if ( allocated( Insystype )) Deallocate ( Insystype )
       end subroutine cleanInVars
@@ -79,6 +81,19 @@ cf2py intent(in) nSnameIn
           call AddSystematics(snameIn(k), k, Inidxsys, Insystype)
         enddo
       end subroutine SetSNames
+
+C     Set names of input files
+      subroutine SetFNames(fnameIn,nFnameIn)
+       character *(*) fnameIn(nFnameIn)
+Cf2py intent(in) fnameIn
+cf2py intent(in) nFnameIn
+        include 'common.inc'
+        allocate(Infname(nFnameIn))
+        do k=1,nFnameIn
+          Infname(k)=fnameIn(k)
+        enddo
+      end subroutine SetFNames
+
 
       end module AvIn
 
@@ -224,10 +239,14 @@ C     Loop over data points and fill grid
          GridPoints(j,1,1) = (j-1)
       enddo
 
-C     Fill fake input filenames
+C     Fill input filenames
       do j=1,nmeasIn
-         write (ctmp,'(''File'',i0)') j
-         InputFileNames(j)=ctmp
+         if(allocated(InfName))then
+             InputFileNames(j)= Infname(j)
+         else
+             write (ctmp,'(''File'',i0)') j
+             InputFileNames(j)=ctmp
+         endif
       enddo
 
 
