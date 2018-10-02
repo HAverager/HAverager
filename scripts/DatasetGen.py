@@ -17,10 +17,15 @@ parser.add_option("-s",dest="nSyst", default=10, type="int", help="Number of sys
 parser.add_option("-M", dest="zMes", default=0.99, type="float", help="Fraction of non-emply measurements")
 parser.add_option("-S", dest="zSyst", default=0.99, type="float", help="Fraction of non-emply systematics")
 
+parser.add_option("--Percent", "-p", action="store_true", dest="percent", default=False,
+				  help="True: relative uncertainty in %, False: Absolute uncertainty")
 parser.add_option("--Poisson", action="store_true", dest="poisson", default=False, help="Use poissonian statistical uncertainties")
 parser.add_option("--Smear", action="store_true", dest="smear", default=False, help="Systematic uncertainties are affected by statistics")
 parser.add_option("--Seed", dest="Seed", default=None, type="int", help="Specify seed (default: take system time)")
 
+for option in parser.option_list:
+    if option.default != ("NO", "DEFAULT"):
+        option.help += (" " if option.help else "") + "[default: %default]"
 
 options, arguments = parser.parse_args()
 
@@ -36,6 +41,7 @@ zSyst = options.zSyst
 # Flags
 doPoisson = options.poisson
 doSmear = options.smear
+doPercent = options.percent
 
 # Seed:
 np.random.seed(options.Seed)
@@ -123,13 +129,16 @@ for m in range(nMes):
 	# Loop over data point
 	for d in range(nData):
 		if(np.abs(Mdata[m][d])>0.1):
+			sf = Mdata[m][d]
+			if(doPercent):
+				sf = Mdata[m][d]
 			f.write('%4.0f,'% d)
 			f.write('%8.3f,'% (Mdata[m][d]))
-			f.write('%8.3f'% (Mstat[m][d]))#*Mdata[m][d]))	
+			f.write('%8.3f'% (Mstat[m][d]*sf))
 			# Loop over systematics
 			for s in range(nSyst):
 				if(Hsyst[m][0][s]!=0):
-					f.write(',%8.3f'% (Msyst[m][d][s]))#*Mdata[m][d]))
+					f.write(',%8.3f'% (Msyst[m][d][s]*sf))
 			f.write('\n')	
 	f.close()
 
@@ -140,32 +149,37 @@ for m in range(nMes):
 
 	f.write('&Data\n')
 	f.write('   Name = \'Data%i\'\n'%nData)
-	f.write('   NData = %i\n'% nData)
+	f.write('   NData = %i\n'% (Mdata[m,:]!=0).sum())
 	f.write('   NColumn = %i\n'%(Hsyst[m,0,:].sum()+3))
 	f.write('   ColumnType = \'Bin\', \'Sigma\', %i*\'Error\'\n'%(Hsyst[m,0,:].sum()+1))
 	f.write('   ColumnName = \'Y\', \'x-section\', \'stat\'')
 	for s in range(nSyst):
-		if(Msyst[m][0][s]!=0):
+		if(Hsyst[m][0][s]!=0):
 			f.write(',\'error%05i\'' % s)
 	f.write('\n')
 	f.write('   Reaction = \'Bla\'\n')
-	f.write('   Percent = false')
-	for s in range(nSyst):
-		if(Hsyst[m][0][s]!=0):
-			f.write(',false')
+	f.write('   Percent = ')
+	for s in range(Hsyst[m,0,:].sum()+1):
+		if(doPercent):
+			f.write('true, ')
+		else:
+			f.write('false, ')
 	f.write('\n')
 	f.write('&END\n')
 
 	# Loop over data point
 	for d in range(nData):
+		sf = Mdata[m][d]
+		if (doPercent):
+			sf = 100
 		if(Mdata[m][d]!=0):
 			f.write('%4.0f '% d)
 			f.write('%8.3f '% Mdata[m][d])		
-			f.write('%8.3f '% (Mstat[m][d]*Mdata[m][d]))	
+			f.write('%8.3f '% (Mstat[m][d]*sf))
 			# Loop over systematics
 			for s in range(nSyst):
 				if(Hsyst[m][0][s]!=0):
-					f.write('%8.3f '% (Msyst[m][d][s]*Mdata[m][d]))
+					f.write('%8.3f '% (Msyst[m][d][s]*sf))
 			f.write('\n')
 	f.write('\n')
 	f.close()
