@@ -141,8 +141,8 @@ for m in range(nMes):
 	f.write('&Data\n')
 	f.write('   Name = \'Data%i\'\n'%nData)
 	f.write('   NData = %i\n'% nData)
-	f.write('   NColumn = %i\n'%(nSyst+3))
-	f.write('   ColumnType = \'Bin\', \'Sigma\', %i*\'Error\'\n'%(nSyst+1))
+	f.write('   NColumn = %i\n'%(Hsyst[m,0,:].sum()+3))
+	f.write('   ColumnType = \'Bin\', \'Sigma\', %i*\'Error\'\n'%(Hsyst[m,0,:].sum()+1))
 	f.write('   ColumnName = \'Y\', \'x-section\', \'stat\'')
 	for s in range(nSyst):
 		if(Msyst[m][0][s]!=0):
