@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-# Set path of the averager
-import sys
-sys.path.append('../bin')
-sys.path.append('../scripts')
 # Import data reader and averager
 import averager
 import DataReader
