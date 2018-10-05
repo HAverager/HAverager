@@ -58,12 +58,10 @@ np.random.seed(options.Seed)
 # Parameters of uncertainties
 # Minumal and maximal relative statistical/systematic uncertainty
 vStat = np.array((options.Stat).split('-'), dtype=float)*0.01
-vSyst = np.array((options.Stat).split('-'), dtype=float)*0.01
+vSyst = np.array((options.Syst).split('-'), dtype=float)*0.01
 
-#vStat = [0.022,0.045]
-#vSyst = [0.03,0.08]
-
-
+print 'Range of statistical uncertainties:', vStat
+print 'Range of systematic uncertainties:', vSyst
 
 # array of truth data points
 Tdata = nData*np.random.random_sample((nData))+1
