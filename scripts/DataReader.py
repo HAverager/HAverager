@@ -30,6 +30,8 @@ def paverage(_bins,_data,_error):
 	# Name of systematic uncertainties
 	global oerror
 	# Binning
+	global bins
+	# Bin names
 	global binnames
 
 	# Get all .csv in current directory
@@ -72,7 +74,7 @@ def paverage(_bins,_data,_error):
 
 	if(_error==''):
 		serror = [s for s in fields if "stat" in s]
-		oerror = [s for s in fields if ("stat" not in s) and ("bin1" not in s) and ("data" not in s)]
+		oerror = [s for s in fields if ("stat" not in s) and ("bin" not in s) and ("data" not in s)]
 	else:
 		stmp = _error.split(',')
 		serror = [s for s in stmp if "stat" in s]
