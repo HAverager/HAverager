@@ -19,9 +19,18 @@ parser.add_option("-S", dest="zSyst", default=0.99, type="float", help="Fraction
 
 parser.add_option("--Percent", "-p", action="store_true", dest="percent", default=False,
 				  help="True: relative uncertainty in %, False: Absolute uncertainty")
-parser.add_option("--Poisson", action="store_true", dest="poisson", default=False, help="Use poissonian statistical uncertainties")
-parser.add_option("--Smear", action="store_true", dest="smear", default=False, help="Systematic uncertainties are affected by statistics")
-parser.add_option("--Seed", dest="Seed", default=None, type="int", help="Specify seed (default: take system time)")
+parser.add_option("--Poisson", action="store_true", dest="poisson", default=False,
+				  help="Use poissonian statistical uncertainties")
+parser.add_option("--Smear", action="store_true", dest="smear", default=False,
+				  help="Systematic uncertainties are affected by statistics")
+parser.add_option("--Seed", dest="Seed", default=None, type="int",
+				  help="Specify seed (default: take system time)")
+
+parser.add_option("--Stat", dest="Stat", default='2.5-4.5', type="string",
+				  help="Range of stat uncertainty given in percent")
+parser.add_option("--Syst", dest="Syst", default='3.0-8.0', type="string",
+				  help="Range of syst uncertainty given in percent")
+
 
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
@@ -48,8 +57,11 @@ np.random.seed(options.Seed)
 
 # Parameters of uncertainties
 # Minumal and maximal relative statistical/systematic uncertainty
-vStat = [0.022,0.045]
-vSyst = [0.03,0.08]
+vStat = np.array((options.Stat).split('-'), dtype=float)*0.01
+vSyst = np.array((options.Stat).split('-'), dtype=float)*0.01
+
+#vStat = [0.022,0.045]
+#vSyst = [0.03,0.08]
 
 
 
@@ -113,6 +125,7 @@ else:
 	Gaus_ij = np.random.normal(0, 1, nMes*nData).reshape((nMes, nData))
 	Mdata = Tdata*(1+(Mstat*Gaus_ij)+np.sum(Msyst*Tshift*Hsyst,axis=2))*Hdata
 
+# Sture truth information
 np.savetxt('Tshift.out', Tshift, fmt='%1.3f')
 np.savetxt('Tdata.out', Tdata, fmt='%1.3f')
 
