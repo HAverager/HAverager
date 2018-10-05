@@ -1,0 +1,46 @@
+&InFiles
+  ! Specify data files to be averaged
+  NInputFiles = 2
+  InputFileNames(1) = 'ZeePtBornNorm.dat'
+  InputFileNames(2) = 'ZmumuPtBornNorm.dat'
+&End
+
+&CommonGrid
+  ! Main steering file
+  GridType = 'Auto'              !  'External' or 'Auto'
+  GridFiles = 'grid.dat'
+  AveSameExp = .true.
+&End
+
+&averager
+ ! Type of output:
+  OutputMode  = 'ORTH'
+ ! Add a prefix for output file names, syst. sources: 
+  OutputPrefix = 'Ave' 
+ ! Control output of the systematic sources:
+  PostRotateSyst = .true.
+ ! Define output folder
+  OutputFolder = 'TOutF'
+WriteOriginal = .true.
+&End
+
+&BiasCorrection
+ ! Additive (ADD) -- no bias correction, linear average
+ ! Multiplicative (MULT) -- all errors are multiplicative   
+ ! AverageType = 'MIXED' -- according to the dataset prescription <== NEW!
+ AverageType = 'MIXED'
+  !*
+  ! Readable only if the 'MULT' or 'Mixed' option is choosen:
+  Iteration = 0
+ !***
+ ! Rescale the stat and uncorr uncertainties separately:
+  RescaleStatSep = .true.
+ ! Correction of the syst bias for stat errors
+  CorrectStatBias = .false.
+ ! Keeping the stat errors fixed'
+  FixStat = .false.
+&End
+
+&Systematics
+  ! Optional, for systematic uncertainties
+&End
