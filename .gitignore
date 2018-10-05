@@ -29,6 +29,7 @@ missing
 */Makefile.in
 */*.o
 num_utils/libnum_utils.a
+scripts/*.pyc
 source/averager
 source/averager.so
 source/libaverage.a
