@@ -137,10 +137,6 @@ def paverage(_bins,_data,_error):
 				j += 1
 		i += 1
 
-	# Fix lenght of names of the systematic uncertainties
-	for i in range(l):
-		oerror[i] = oerror[i].ljust(32)
-	
 	return data_,serror_,oerror_
 
 
