@@ -94,6 +94,39 @@ cf2py intent(in) nFnameIn
         enddo
       end subroutine SetFNames
 
+C     Set binning
+      subroutine SetBinning(binIn,binNameIn,nBinIn,nDimIn)
+
+          implicit none
+          character *(*) binNameIn(nDimIn)
+          real*8 binIn(nBinIn,nDimIn)
+          integer nBinIn, nDimIn, j
+
+C python helper:
+
+Cf2py intent(in) binIn
+Cf2py intent(in) binNameIn
+
+Cf2py intent(in) nBinIn
+cf2py intent(in) nDimIn
+
+        include 'common.inc'
+
+C     Fill dummy grid information (always 1D grid)
+      NProcClass    = 1
+      idxReactionMeas(1) = 1
+      gridreaction(1) = 'Bla'
+      NDimensionGrid(1) = nDimIn
+      GridBinNames(:,1) = binNameIn(:)
+
+
+C     Loop over data points and fill grid
+      do j=1,nBinIn
+         idxGridMeas(j) = j
+         idxProcessClass(j) = 1
+         GridPoints(j,:,1) = binIn(j,:)
+      enddo
+      end subroutine SetBinning
 
       end module AvIn
 
@@ -225,6 +258,7 @@ C     If not, give default names
       endif
 
 
+      if(NProcClass .ne. 1)then
 C     Fill dummy grid information (always 1D grid)
       NProcClass    = 1
       idxReactionMeas(1) = 1
@@ -238,6 +272,7 @@ C     Loop over data points and fill grid
          idxProcessClass(j) = 1
          GridPoints(j,1,1) = (j-1)
       enddo
+      endif
 
 C     Fill input filenames
       do j=1,nmeasIn
