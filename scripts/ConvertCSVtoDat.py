@@ -6,10 +6,12 @@ from optparse import OptionParser
 import os
 import glob
 
+# Script converts csv to dat files used by fotran version of HAverager
+
 ########################
 # setup input parameters
 ########################
-usage = ("DatasetGen.py parameters \nCreate dataset with gaussian uncertainties.  \n")
+usage = ("ConvertCSVtoDat.py parameters \nConvert csv to dat files used by fotran version of HAverager \n")
 parser = OptionParser(usage)
 parser.add_option("-f", dest="fpath", type="string", help="input file path")
 parser.add_option("--InPercent", "-i", action="store_true", dest="inpercent", default=False,
