@@ -2,8 +2,19 @@ from numpy import *
 from numpy import linalg as LA
 
 # Reduce correlation model
+# Script construct covariance matrix and
+# decompose it to eigenvectors and eigenvalues.
+# Eigenvalues are ordered from smallest to biggest.
+# New covariance matrix is constructed using large
+# eigenvalues and corresponding eigenvectors, while small
+# are ignored. Sum of all ignored normalized eigenvalues are
+# less then given parameter coef.
 # shape of array syst: 
 # [number of systematics, number of bins, number of measurements]
+# stat uncertainty can be optionally added to diagonal of the
+# covariance matrix.
+# coef define a maximum of sum of ignored normalized eigenvalues.
+
 def ReduceCorrelationModel(syst, stat=[0], coef=0):
 
 	print 'Input shape ', syst.shape
