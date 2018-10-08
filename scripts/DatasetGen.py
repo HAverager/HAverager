@@ -3,12 +3,12 @@
 import numpy as np
 from optparse import OptionParser
 
-# Dataset generator is a script to produce fake datasets in order to test averager
+# Dataset generator is a script to produce toy datasets in order to test averager
 
 ########################
 # setup input parameters
 ########################
-usage = ("DatasetGen.py parameters \nCreate dataset with gaussian uncertainties.  \n")
+usage = ("DatasetGen.py parameters \nCreate toy dataset with gaussian uncertainties.\n")
 parser = OptionParser(usage)
 parser.add_option("-d",dest="nData", default=50, type="int", help="Number of data points")
 parser.add_option("-m",dest="nMes", default=2, type="int", help="Number of measurements")
