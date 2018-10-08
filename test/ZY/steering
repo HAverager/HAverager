@@ -8,7 +8,7 @@
 
 &CommonGrid
   ! Main steering file
-  GridType = 'Auto'              !  'External' or 'Auto'
+  GridType = 'External'              !  'External' or 'Auto'
   GridFiles = 'grid.dat'
   AveSameExp = .true.
 &End
