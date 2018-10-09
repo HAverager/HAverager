@@ -1,48 +1,77 @@
 #!/usr/bin/env python
 
-from numpy import *
+import os
+import time
+import matplotlib.pyplot as plt
 
-
-def gen(ndata=1000,nsys=1000,nset=2):
-    ''' Generate data ''' 
-
-    stat_s = random.normal(0.,1.,(ndata,nset))
-    syst_b = random.normal(0.,1.,nsys)
-    syst_g = random.normal(0.,1.,(nsys,ndata,nset))
-
-    cent = 100.+stat_s+sum(syst_b[:,newaxis,newaxis]*syst_g,axis=0)
-    stat = ones( (ndata,nset) )
-    return cent,stat,syst_g
-    
-# Set path of the averager
-import sys
-sys.path.append('../bin')
+# Import data reader and averager
 import averager
+import DataReader
 
-generate = 0
+# Script to test time performance of HAvergaer with different options
 
-nm = 2000
-ns = 2000
-if generate>0:
-    ce,er,sy = gen(nm,ns,2)
+# perform averaging
+def RunAverager(UseBlas=False, nToyMC=0, SysImp=False, itr=0):
+
+    # read the data
+    data, stat, syst = DataReader.paverage('', '', '')
+
+    # initialization (optional information)
+    averager.avin.cleaninvars()
+
+    averager.avin.initvariables()
+    averager.avin.setoutputfolder('./TOutP')
+    averager.avin.initeration = itr
+    averager.avin.inwriteoriginal = True
+
+    averager.avin.infixstat = False
+    averager.avin.incorrectstatbias = False
+    averager.avin.inrescalestatsep = False
+
+    averager.avin.inpostrotatesyst = False
+    averager.avin.indosystimpact = SysImp
+    averager.avin.inntoymc = nToyMC
+    averager.avin.inuseblas = UseBlas
+
+    start = time.time()
+    averager.average(data, stat, syst)
+    end = time.time()
+    return (end-start)
+
+# Test 1.
+nsyst = [20, 50, 100, 150, 200, 250, 300, 450]
+t1 = []
+t2 = []
+
+for ns in nsyst:
+    os.system('DatasetGen.py -d 700 -s {}'.format(ns))
+    t1.append(RunAverager(UseBlas=True))
+    t2.append(RunAverager())
 
 
-    ce.tofile("ce.dat")
-    er.tofile("er.dat")
-    sy.tofile("sy.dat")
+plt.figure()
+plt.plot(nsyst, t1, label='with blas')
+plt.plot(nsyst, t2, label='without blas')
+plt.legend(numpoints=1, loc=0)
+plt.xlabel('number of systematics')
+plt.ylabel('running time')
+plt.savefig('TimevsSyst.pdf')
 
-    print sy.shape
-    exit(0)
+# Test 2.
+ndata = [100, 200, 500, 1000, 3000]
+t1 = []
+t2 = []
 
-ce = fromfile("ce.dat").reshape(nm,2)
-er = fromfile("er.dat").reshape(nm,2)
-sy = fromfile("sy.dat").reshape(ns,nm,2)
+for ns in ndata:
+    os.system('DatasetGen.py -d {} -s 200'.format(ns))
+    t1.append(RunAverager(UseBlas=True))
+    t2.append(RunAverager())
 
-#initialization (optional information)
-averager.avin.initvariables()
-averager.avin.setoutputfolder('./o')
-averager.avin.initeration = 3
-#perform averaging
-dataAv,statAv,systAv = averager.average(ce,er,sy)
 
-print dataAv
+plt.figure()
+plt.plot(ndata, t1, label='with blas')
+plt.plot(ndata, t2, label='without blas')
+plt.legend(numpoints=1, loc=0)
+plt.xlabel('number of data points')
+plt.ylabel('running time')
+plt.savefig('TimevsData.pdf')
