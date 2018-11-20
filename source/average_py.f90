@@ -166,7 +166,6 @@ C     Averaging
       real*8 systIn(nSystIn,ndataIn,nmeasIn)
       real*8 dataOut(ndataIn), statOut(ndataIn)
      $     , systOut(nsystIn,ndataIn)
-      integer idxsys(nsystIn), systype(nsystIn)
       character*8 ctmp
 C python helper:
 
@@ -186,8 +185,8 @@ cf2py intent(out) systOut
       include 'common.inc'
       integer i,j,k
 
-      integer iFile,iF2,iexp, isys, ndf
-      double precision sum, chi2loc
+      integer iFile,iF2,iexp, isys
+      double precision sum
 
 C     Print size of the input information
       print *,'Measured points          ',nDataIn
