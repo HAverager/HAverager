@@ -16,6 +16,7 @@ C Basic namelists:
 
 C The temporary file name:
       character*256 cfile
+      character*128 gridtype
 
       namelist/averager/OutputMode,
      $     OutputPrefix, OutputFolder, IDebug,
@@ -461,7 +462,7 @@ C	    WRITE(*,*) ' GP: ',GridPoints(itemp,k,iGrid)
  555    continue
       enddo
 
-      close (51)
+      ! close (51)
 
       
       return

@@ -104,10 +104,7 @@ C Output:
      $     ,datasetbinnames
 
       character*256 InputFileNames(NMEASMAX)
-      
-      character*128 
-     $     GridType,                   !> Grid type: External or Auto
-     $     GridFiles(NREACTMAX)        !> Grid file names
+      character*128 GridFiles(NREACTMAX)  !> Grid file names
       
       Common/CFilesGrids/InputFileNames,GridFiles
 
