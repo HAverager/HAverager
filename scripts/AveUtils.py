@@ -14,7 +14,6 @@ from numpy import linalg as LA
 # stat uncertainty can be optionally added to diagonal of the
 # covariance matrix.
 # coef define a maximum of sum of ignored normalized eigenvalues.
-
 def ReduceCorrelationModel(syst, stat=[0], coef=0):
 
 	print 'Input shape ', syst.shape
@@ -72,3 +71,24 @@ def ReduceCorrelationModel(syst, stat=[0], coef=0):
 		stat = NewStat.transpose()
 	return syst, stat
 
+# Get correlation matrix from array of systematics
+def GetCorrMatrix(A):
+    Cov = GetCov(A)
+    Corr = GetCorr(Cov)
+    return Corr
+
+# Get correlation from covariance matrix
+def GetCorr(Cov):
+	B  = diag(Cov)
+	nB = B.size
+	C = ones((nB,nB))
+	D = B.reshape(nB,1)*C*B
+	return Cov/sqrt(D)
+
+# Get covariance matrix from array of systematics
+def GetCov(A, axis=0):
+	if(axis==0):
+		Cov = A.dot(A.transpose())
+	else:
+		Cov = (A.transpose()).dot(A)
+	return Cov

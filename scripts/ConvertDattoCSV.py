@@ -1,37 +1,41 @@
 #!/usr/bin/env python
 
 import numpy as np
-import pandas as pd
-from optparse import OptionParser
+import argparse
 import os
 import glob
 import csv
 
-# Script converts csv to dat files used by fotran version of HAverager
+# Script converts dat to csv files used by Python version of HAverager
 
 ########################
 # setup input parameters
 ########################
-usage = ("ConvertCSVtoDat.py parameters \nConvert csv to dat files used by fotran version of HAverager \n")
-parser = OptionParser(usage)
-parser.add_option("-f", dest="fpath", type="string", help="input file path")
-parser.add_option("--InPercent", "-i", action="store_true", dest="inpercent", default=False,
-                  help="Presentation of input uncertainty. "
-                       + "True: relative uncertainty in %, False: Absolute uncertainty")
+parser = argparse.ArgumentParser(description="Converts dat to csv files used by Python version of HAverager")
+parser.add_argument('fpath', metavar='fpath', type=str, nargs='+',
+                    help='input file path.')
 
-options, arguments = parser.parse_args()
+parser.add_argument("--Percent", action="store_true", dest="percent", default=False,
+                    help="Presentation of input uncertainty. " +
+                         "True: relative uncertainty in percent False: Absolute uncertainty")
 
-fpath = options.fpath
-inpercent = options.inpercent
+arguments = parser.parse_args()
 
-fnames = glob.glob(fpath)
+
+fpath = arguments.fpath
+inpercent = arguments.percent
+
+if len(fpath)==1:
+    fnames = glob.glob(fpath[0])
+else:
+    fnames = fpath
 
 # Loop over files
 # Write output to .dat file
 for fname in fnames:
 
     # Read the file
-    print fname
+    print(fname)
     F = open(fname)
 
     nData = 0
@@ -75,9 +79,11 @@ for fname in fnames:
             ColName[i] = 'data'
         if 'uncor' in ColName[i]:
             ColName[i] = 'stat'
+        else:
+            ColName[i] = ColName[i].strip()
+    F.close()
 
     data = np.loadtxt(fname, skiprows=counter)
-    print data
 
     # Write csv file
     f = open(os.path.basename(fname).replace('.dat', '.csv'), 'w')
