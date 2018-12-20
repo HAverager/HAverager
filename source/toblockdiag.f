@@ -77,11 +77,9 @@ C---------------------------------------------------
       real*8 WWW(NSYSTOT)  ! Eigenvalues
       real*8 sum
       integer ndf
-      real sterr,uncerr,toterr
+      real*8 sterr,uncerr,toterr
 
       double precision time1,time2
-
-      call cpu_time(time1)
 
 C Calc error reduction
       do j=1,nsystot
@@ -89,10 +87,11 @@ C Calc error reduction
       enddo
 
 C Print the central values of the sys uncert and the errors of the systematics
-      call PrintSystSummary()
+      if (IDEBUG.gt.0) then
+         call PrintSystSummary()
+      endif
 
       call cpu_time(time2)
-      print *,'LI1 = ',time1,time2,time2-time1
 C Get NEW SYST Errors
       do if2=1,NMeas
          SUM = 0
@@ -110,7 +109,7 @@ C Get NEW SYST Errors
       enddo
 
       call cpu_time(time1)
-      print *,'LI2 = ',time1,time2,time1-time2
+      print *,'LI1 = ',time1,time2,time1-time2
 
 C Get stat and total uncertainty
       do if2=1,NMeas
@@ -119,11 +118,10 @@ C Get stat and total uncertainty
 C Stat+Uncorr uncertainties:
 C Delta_ave (F2EstAve) = sqrt(Am^-1)
          F2EstAve(if2) = sqrt(1.0d0/DIAG(if2))
-         
+
 C True stat. errors:
 C (F2EstAveTrue) = Delta_ave^4 * Delta_stat^2/Delta^4
          do imeas = 1, NMeasF2(if2)
-
             STERR = STERR  +
      $           F2ETAB_STA(if2,imeas)**2/F2ETAB(if2,imeas)**4
             UNCERR = UNCERR +
@@ -147,8 +145,9 @@ C Calculate CHI2 according to the formula for chi2:
       call CalcChi2(chi2, ndf)
 
 C Write Averaged values and chi2
-      call PrintAveSummary(chi2, ndf)
-
+      if (IDEBUG.gt.0) then
+         call PrintAveSummary(chi2, ndf)
+      endif
 
 C Zero close to zero correlations to avoid strange results
 C for a single dataset
@@ -163,11 +162,10 @@ C for a single dataset
          endif
       enddo
 
-      call cpu_time(time2)
-      print *,'LI5 = ',time1,time2,time2-time1
-
 C     Print variance matrix
 C      Call PrintMatrix(box)
+
+      call cpu_time(time2)
 
 C Get eigenvectors and eigenvalues:
 C WWW - eigenvalues D^2 in ascending order of As'
@@ -185,8 +183,10 @@ C (box) = UD
          enddo
       enddo
 
+C     Print the eigenvalues and eigenvectors
+      call PrintEigInfo(WWW,box)
+
       call cpu_time(time2)
-      print *,'LI7 = ',time1,time2,time2-time1
 
 C Post-process Box3, make it triangular and positive along the diagonal
       if (PostRotateSyst) then
@@ -195,11 +195,9 @@ C Post-process Box3, make it triangular and positive along the diagonal
          Call PostRotate(nsystot,box)
       endif
 
-C     Print the eigenvalues and eigenvectors
-      call PrintEigInfo(WWW,box)
-
       call cpu_time(time1)
       print *,'Rotation = ',time1,time2,time1-time2
+
 
 C Get rotated systematic matrix:
       if(UseBlas)then
@@ -242,7 +240,6 @@ C (SystOrig) = Asm Am^-1 sqrt(Diag(As'^-1))
 
       call cpu_time(time1)
       print *,'LI9 = ',time1,time2,time1-time2
-
 
 C---------------------------------------------------------------------
       end
@@ -329,7 +326,7 @@ C Print symmary for systematic uncertainty
      $     'Ind',' Name','Shift','Error'
       print *,' ----------------------------------------------------'
       do j=1,nsystot
-         print '(i3,(A32),''  '',1F8.2,2F8.2)',
+         print '(i4,(A32),''  '',1F8.2,2F8.2)',
      $        j,TRIM(ADJUSTL(SystematicName(j))),
      $        SYSSH(j),errsyst(j)
       enddo

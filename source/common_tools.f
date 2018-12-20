@@ -386,8 +386,10 @@ C---  Add new source
      $         //'Increase velue of NSystMax in settings.inc')
           endif
 
-          print *,"Add Sys Source ",NSYSTOT,trim(CurrentSysName),
-     &    ", form: ",CurrentSysForm
+          if (IDEBUG.gt.0) then
+             print *,"Add Sys Source ",NSYSTOT,trim(CurrentSysName),
+     &       ", form: ",CurrentSysForm
+          endif
           iSys(idx) = NSYSTOT
           SystematicName(NSYSTOT) = CurrentSysName
           SysForm(NSYSTOT) = CurrentSysForm

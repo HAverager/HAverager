@@ -168,7 +168,6 @@ C         Find averaged value and systematics:
       enddo
 
       call cpu_time(time1)
-      print *,'here3',time2,time1,time1-time2
       if(lastItr)then
 C       Prepare output, rotate syst.
 C       Do not run for offset systematics

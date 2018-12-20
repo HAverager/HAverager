@@ -86,8 +86,6 @@ C      print *,'SYSTAB',SYSTAB(1:NSysTot,1:NDiag,1:2)
 C Fill in the box matrix (As):
 
          call cpu_time(time1)
-         print *,'here',time1
-
          if (useBlas) then
            NdataT = 0
            do i=1,NMeas
@@ -132,7 +130,7 @@ C Fill in the box matrix (As):
             enddo
          endif
          call cpu_time(time2)
-         print *,'here2',time1,time2,time2-time1
+         print *,'Fill As',time1,time2,time2-time1
 
       
 
@@ -169,8 +167,6 @@ C Last column correlation:
 
 C    Fill matrix A' = As - Asm^T Am^-1 Asm
       call cpu_time(time1)
-      print *,'here3',time2,time1,time1-time2
-
       do if2=1,NDiag
          do isys=1,NSYSTOT
             Coef = - Corr(isys,if2) * oneOverDiag(if2)
@@ -217,7 +213,7 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
       endif
       
       call cpu_time(time2)
-      print *,'here4',time1,time2,time2-time1
+      print *,'Fill A^ ',time1,time2,time2-time1
 
       if (IDebug. ge. 4) then
          write(*,*) 'debug:'
@@ -233,9 +229,6 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
          print *,'last'
          print '(6F12.4)',(last(j),j=1,NDiag+NSYSTOT)
       endif
-
-      call cpu_time(time1)
-      print *,'here5',time2,time1,time1-time2
 
       DeAllocate(err2tab)
       deAllocate(oneOverDiag)
