@@ -18,7 +18,7 @@
  ! Add a prefix for output file names, syst. sources: 
   OutputPrefix = 'Ave' 
  ! Control output of the systematic sources:
-  PostRotateSyst = .true.
+  PostRotateSyst = .false.
  ! Define output folder
   OutputFolder = 'TOutF'
 WriteOriginal = .true.
@@ -34,7 +34,7 @@ WriteOriginal = .true.
   Iteration = 0
  !***
  ! Rescale the stat and uncorr uncertainties separately:
-  RescaleStatSep = .true.
+  RescaleStatSep = .false.
  ! Correction of the syst bias for stat errors
   CorrectStatBias = .false.
  ! Keeping the stat errors fixed'
