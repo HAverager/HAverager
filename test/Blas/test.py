@@ -15,7 +15,7 @@ def RunAverager(UseBlas=False, nToyMC=0, SysImp=False, itr=0):
 
     # read the data
     print 'read data'
-    data, stat, syst = DataReader.paverage('', '', '')
+    data, stat, syst = DataReader.paveragefast()
     print 'do Averaging'
 
     # Set input parameters
@@ -40,7 +40,7 @@ def RunAverager(UseBlas=False, nToyMC=0, SysImp=False, itr=0):
     return (end-start)
 
 # Test 1.
-nsyst = [20, 50, 100, 150, 200, 250, 300, 450, 1000, 1500, 2000, 2500]
+nsyst = [20, 50, 100, 150, 200, 250, 300, 450, 1000, 1500, 2000]
 t1 = []
 t2 = []
 
