@@ -13,20 +13,8 @@ C     Module with input paratemetrs
       logical InFixStat
       logical InUseBlas
       logical IndoSystImpact
-      character(len=128), allocatable :: Insname(:)
-      character(len=128), allocatable :: Infname(:)
-      integer, allocatable ::  Inidxsys(:)
-      integer, allocatable ::  Insystype(:)
 
       contains
-
-C     Deallocate all vars
-      subroutine cleanInVars
-      if ( allocated( Insname )) Deallocate ( Insname )
-      if ( allocated( Infname )) Deallocate ( Infname )
-      if ( allocated( Inidxsys )) Deallocate ( Inidxsys )
-      if ( allocated( Insystype )) Deallocate ( Insystype )
-      end subroutine cleanInVars
 
 C     Initialization of steerable parameters with default values
       subroutine initVariables
@@ -67,39 +55,13 @@ Cf2py intent(in) dataIn
         OutputPrefix = datain
       end subroutine SetOutputPrefix
 
-C     Set names of the systematic uncertainties
-      subroutine SetSNames(snameIn,nSnameIn)
-       character *(*) snameIn(nSnameIn)
-Cf2py intent(in) snameIn
-cf2py intent(in) nSnameIn
-        include 'common.inc'
-        allocate(Insname(nSnameIn))
-        allocate(Inidxsys(nSnameIn))
-        allocate(Insystype(nSnameIn))
-        do k=1,nSnameIn
-          Insname(k)=snameIn(k)
-          call AddSystematics(snameIn(k), k, Inidxsys, Insystype)
-        enddo
-      end subroutine SetSNames
-
-C     Set names of input files
-      subroutine SetFNames(fnameIn,nFnameIn)
-       character *(*) fnameIn(nFnameIn)
-Cf2py intent(in) fnameIn
-cf2py intent(in) nFnameIn
-        include 'common.inc'
-        allocate(Infname(nFnameIn))
-        do k=1,nFnameIn
-          Infname(k)=fnameIn(k)
-        enddo
-      end subroutine SetFNames
 
 C     Set binning
       subroutine SetBinning(binIn,binNameIn,nBinIn,nDimIn)
 
           implicit none
           character *(*) binNameIn(nDimIn)
-          real*8 binIn(nBinIn,nDimIn)
+          real*4 binIn(nBinIn,nDimIn)
           integer nBinIn, nDimIn, j
 
 C python helper:
@@ -119,6 +81,11 @@ C     Fill dummy grid information (always 1D grid)
       NDimensionGrid(1) = nDimIn
       GridBinNames(:,1) = binNameIn(:)
 
+      if (nBinIn .gt. NGridPointMax) then
+          print *,'nBinIn = ',nBinIn
+          call hf_errlog(2,
+     $   'F:Too many grid points. Increase NGridPointMax')
+      endif
 
 C     Loop over data points and fill grid
       do j=1,nBinIn
@@ -130,52 +97,164 @@ C     Loop over data points and fill grid
 
       end module AvIn
 
-C     Mudule with output variables
-      module AvOut
-      real*8,allocatable :: pullsyst(:)
-      real*8,allocatable :: shiftsyst(:)
-      real*8,allocatable :: squeezesyst(:)
-      real*8,allocatable :: pulldata(:,:)
-      real*8,allocatable :: sysimpact(:,:)
-      real*8,allocatable :: toystat(:)
-      real*8 :: chi2
-      integer :: ndof
-      end module AvOut
-
-      subroutine cleanOutVars
-      use AvOut
-      if (allocated(pullsyst)) deallocate(pullsyst)
-      if (allocated(shiftsyst)) deallocate(shiftsyst)
-      if (allocated(squeezesyst)) deallocate(squeezesyst)
-      if (allocated(pulldata)) deallocate(pulldata)
-      if (allocated(sysimpact)) deallocate(sysimpact)
-      if (allocated(toystat)) deallocate(toystat)
-      end subroutine cleanOutVars
-
-C     Averaging
-      subroutine average( dataIn, statIn, systIn,
-     $     dataOut, statOut, systOut,
-     $     nmeasIn, nDataIn,nSystIn)
-
-      use AvIn
-      use AvOut
+      subroutine getpulls(pulls, nPulls)
       implicit none
 
-      integer nmeasIn, nDataIn, nSystIn
+      integer nPulls, k
+      real*8 pulls(nPulls)
+
+cf2py intent(in) nPulls
+cf2py intent(out) pulls
+
+      include 'common.inc'
+      do k=1,nsysTot
+         pulls(k) = SYSSH(k) /
+     $         sqrt(1 - errsyst(k)*errsyst(k))
+      enddo
+      end subroutine getpulls
+
+      subroutine getdatapulls(pulls, nPulls, nFiles)
+      implicit none
+
+      integer nPulls, nFiles
+      integer iFile, if2, iexp, isys
+      real*8 sum
+      real*8 pulls(nFiles, nPulls)
+
+cf2py intent(in) nPulls
+cf2py intent(in) nFiles
+cf2py intent(out) pulls
+
+      include 'common.inc'
+      do iFile=1,NInputFiles
+         do if2=1,NMeas
+            do iexp=1,NMeasF2(if2) !NMeas
+               if (F2DataFile(if2,iexp).eq.IFile) then
+                  sum = F2TAB(if2,iexp)
+                  do isys=1,NSYSTOT
+                     sum = sum + SYSTAB(isys,if2,iexp)*SYSSH(isys)
+                  enddo
+
+                  if (NMeasF2(if2).gt.1) then
+                     pulls(iFile,if2) = (F2VAVE(if2)-sum)/
+     $                    sqrt(abs(F2ETAB(if2,iexp)**2
+     $                    -F2EstAve(if2)**2))
+                  else
+                     pulls(iFile,if2) = 0.
+                  endif
+
+               endif
+            enddo
+         enddo
+      enddo
+
+      end subroutine getdatapulls
+
+      subroutine getchi2(chi2, ndof)
+
+      real*8 chi2, ndof
+cf2py intent(out) chi2
+cf2py intent(out) ndof
+      include 'common.inc'
+      call CalcChi2(chi2, ndof)
+
+      end subroutine getchi2
+
+      subroutine getshiftsyst(shiftsyst, nshiftsyst)
+      implicit none
+
+      integer nshiftsyst, k
+      real*8 shiftsyst(nshiftsyst)
+
+cf2py intent(in) nshiftsyst
+cf2py intent(out) shiftsyst
+
+      include 'common.inc'
+      do k=1,nsysTot
+            shiftsyst(k) = SYSSH(k)
+      enddo
+      end subroutine getshiftsyst
+
+
+
+      subroutine gettoystat(toystat, nData)
+      implicit none
+
+      integer nData
+      integer i
+      real*8 toystat(nData)
+
+cf2py intent(in) nData
+cf2py intent(out) toystat
+
+      include 'common.inc'
+      do i=1,NMeas
+         if(nToyMC .gt. 0)then
+            toystat(i) = StatToyMC(i)
+         else
+            toystat(i) = 0
+         endif
+      enddo
+
+      end subroutine gettoystat
+
+
+      subroutine getsysimpact(sysimpact, nData, nSyst)
+      implicit none
+
+      integer nData, nSyst
+      integer i, k
+      real*8 sysimpact(nSyst, nData)
+
+cf2py intent(in) nData
+cf2py intent(in) nSyst
+cf2py intent(out) sysimpact
+
+      include 'common.inc'
+      do i=1,NMeas
+         do k=1,nsysTot
+            if(doSystImpact)then
+               sysimpact(k,i) =
+     $    (F2VaveSyst(i,2*k)-F2VaveSyst(i,2*k-1))*0.5
+            else
+               sysimpact(k,i) = 0
+            endif
+         enddo
+      enddo
+
+      end subroutine getsysimpact
+
+
+
+C     Averaging
+      subroutine average( dataIn, statIn, systIn, snameIn, fnameIn,
+     $     dataOut, statOut, systOut,
+     $     nmeasIn, nDataIn,nSystIn, nSnameIn, nFnameIn)
+
+      use AvIn
+      implicit none
+
+      integer nmeasIn, nDataIn, nSystIn, nSnameIn, nFnameIn
+      character *(*) snameIn(nSnameIn)
+      character *(*) fnameIn(nFnameIn)
       real*8 dataIn(ndataIn,nmeasIn), statin(ndataIn,nmeasIn)
       real*8 systIn(nSystIn,ndataIn,nmeasIn)
       real*8 dataOut(ndataIn), statOut(ndataIn)
      $     , systOut(nsystIn,ndataIn)
-      character*8 ctmp
+C      character*8 ctmp
 C python helper:
 
 Cf2py intent(in) dataIn 
 Cf2py intent(in) statIn 
 Cf2py intent(in) systIn 
+Cf2py intent(in) snameIn
+Cf2py intent(in) fnameIn
 
 Cf2py intent(in) nmeasIn
 cf2py intent(in) nDataIn 
 cf2py intent(in) nSystIn
+cf2py intent(in) nSnameIn
+cf2py intent(in) nFnameIn
 
 cf2py intent(out) dataOut
 cf2py intent(out) statOut
@@ -185,8 +264,9 @@ cf2py intent(out) systOut
       include 'common.inc'
       integer i,j,k
 
-      integer iFile,iF2,iexp, isys
-      double precision sum
+      integer ::  Inidxsys(nSystIn)
+      integer ::  Insystype(nSystIn)
+C     integer iFile,iF2,iexp, isys
 
 C     Print size of the input information
       print *,'Measured points          ',nDataIn
@@ -198,9 +278,6 @@ C     Initialize default values
       if(init.ne.777)then
          Call initVariables
       endif
-
-C     This ensures that the code can be called twice
-      call cleanOutVars
 
 C     Fill input parameters
       IDebug = InDebug
@@ -239,22 +316,10 @@ C     Print initial variables
 C     Fill internal arrays and variables
       NInputFiles   = nmeasIn
       NMeas         = nDataIn
+      NSysTot       = 0
 
 C     Check if the systematic names were already given
 C     If not, give default names
-
-      if(NSysTot.eq.0  .or. (.not. allocated(InsName)  ) ) then
-         print *,'Set dummy names for systematics:'
-         NSysTot = nSystIn
-         do k=1,nsystot
-            if(len(trim(SystematicName(k))).eq.132)then
-               write (ctmp,'(''syst'',i0)') k
-               SystematicName(k) = ctmp
-               SysForm(k) = 11
-            endif
-         enddo
-         call SetSNames(SystematicName,nsystot)
-      endif
 
 
       if(NProcClass .ne. 1)then
@@ -265,6 +330,11 @@ C     Fill dummy grid information (always 1D grid)
       NDimensionGrid(1) = 1
       GridBinNames(1,1) = 'Y'
 
+      if (NMeas .gt. NGridPointMax) then
+          print *,'NMeas = ',NMeas
+          call hf_errlog(2,
+     $   'F:Too many grid points. Increase NGridPointMax')
+      endif
 C     Loop over data points and fill grid
       do j=1,NMeas
          idxGridMeas(j) = j
@@ -273,19 +343,17 @@ C     Loop over data points and fill grid
       enddo
       endif
 
-C     Fill input filenames
-      do j=1,nmeasIn
-         if(allocated(InfName))then
-             InputFileNames(j)= Infname(j)
-         else
-             write (ctmp,'(''File'',i0)') j
-             InputFileNames(j)=ctmp
-         endif
+C     Add systematics
+
+      do k=1,nSnameIn
+          call AddSystematics(snameIn(k), k, Inidxsys, Insystype)
       enddo
 
+C     Fill input filenames
+      do j=1,nmeasIn
+         InputFileNames(j)= fnameIn(j)
+      enddo
 
-
-      
 C     Fill data and uncertainties
 C     Loop over measurements
       do i=1,NMeas
@@ -316,61 +384,13 @@ C     Print output
       Call Output
 
 C     Fill output information
-      allocate(pullsyst(nsysTot))
-      allocate(shiftsyst(nsysTot))
-      allocate(squeezesyst(nsysTot))
-      allocate(pulldata(NInputFiles,NMeas))
-      allocate(sysimpact(nsysTot,NMeas))
-      allocate(toystat(NMeas))
-
       do i=1,NMeas
          dataOut(i) = f2vave(i)
          statOut(i) = F2EstAve(i)
-         if(nToyMC .gt. 0)then
-            toystat(i) = StatToyMC(i)
-         else
-            toystat(i) = 0
-         endif
          do k=1,nsysTot
             systOut(k,i) =  SystDiag(k,i)
-            pullsyst(k) = SYSSH(k) /
-     $            sqrt(1 - errsyst(k)*errsyst(k))
-            shiftsyst(k) = SYSSH(k)
-            squeezesyst(k) = errsyst(k)
-            if(doSystImpact)then
-               sysimpact(k,i) = 
-     $    (F2VaveSyst(i,2*k)-F2VaveSyst(i,2*k-1))*0.5
-            else
-               sysimpact(k,i) = 0
-            endif
          enddo
       enddo
-
-C     Fill data pulls
-      do iFile=1,NInputFiles
-         do if2=1,NMeas
-            do iexp=1,NMeasF2(if2) !NMeas
-               if (F2DataFile(if2,iexp).eq.IFile) then
-                  sum = F2TAB(if2,iexp)
-                  do isys=1,NSYSTOT
-                     sum = sum + SYSTAB(isys,if2,iexp)*SYSSH(isys)
-                  enddo
-
-                  if (NMeasF2(if2).gt.1) then
-                     pulldata(iFile,if2) = (F2VAVE(if2)-sum)/
-     $                    sqrt(abs(F2ETAB(if2,iexp)**2
-     $                    -F2EstAve(if2)**2))
-                  else
-                     pulldata(iFile,if2) = 0.
-                  endif
-
-               endif
-            enddo
-         enddo
-      enddo
-
-C     Fill Chi^2 and NDoF
-      call CalcChi2(chi2, ndof)
 
 C--------------------------------------------------------------------
       end subroutine average
