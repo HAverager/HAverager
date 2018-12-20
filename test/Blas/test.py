@@ -5,7 +5,7 @@ import time
 import matplotlib.pyplot as plt
 
 # Import data reader and averager
-import averager
+import PyAverager
 import DataReader
 
 # Script to test time performance of HAvergaer with different options
@@ -14,32 +14,33 @@ import DataReader
 def RunAverager(UseBlas=False, nToyMC=0, SysImp=False, itr=0):
 
     # read the data
+    print 'read data'
     data, stat, syst = DataReader.paverage('', '', '')
+    print 'do Averaging'
 
-    # initialization (optional information)
-    averager.avin.cleaninvars()
+    # Set input parameters
+    PyAverager.OutFolder = './TOutP'
+    PyAverager.nIterations = itr
+    PyAverager.writeoriginal = False
 
-    averager.avin.initvariables()
-    averager.avin.setoutputfolder('./TOutP')
-    averager.avin.initeration = itr
-    averager.avin.inwriteoriginal = True
+    PyAverager.fixstat = False
+    PyAverager.correctstatbias = False
+    PyAverager.rescalestatsep = False
 
-    averager.avin.infixstat = False
-    averager.avin.incorrectstatbias = False
-    averager.avin.inrescalestatsep = False
+    PyAverager.postrotatesyst = False
+    PyAverager.dosystimpact = SysImp
+    PyAverager.ntoymc = nToyMC
+    PyAverager.useblas = UseBlas
 
-    averager.avin.inpostrotatesyst = False
-    averager.avin.indosystimpact = SysImp
-    averager.avin.inntoymc = nToyMC
-    averager.avin.inuseblas = UseBlas
-
+    # Perform averaging
     start = time.time()
-    averager.average(data, stat, syst)
+    PyAverager.average(data, stat, syst)
     end = time.time()
+
     return (end-start)
 
 # Test 1.
-nsyst = [20, 50, 100, 150, 200, 250, 300, 450]
+nsyst = [20, 50, 100, 150, 200, 250, 300, 450, 1000, 1500, 2000, 2500]
 t1 = []
 t2 = []
 
@@ -58,7 +59,7 @@ plt.ylabel('running time')
 plt.savefig('TimevsSyst.pdf')
 
 # Test 2.
-ndata = [100, 200, 500, 1000, 3000]
+ndata = [100, 200, 500, 1000, 1400]
 t1 = []
 t2 = []
 

@@ -1,64 +1,33 @@
 #!/usr/bin/env python
 
 # Import data reader and averager
-import averager
+import PyAverager
 import DataReader
-import CorrModel
+import AveUtils
+import AvePlot
 
 # imports libraties for plotting
 from numpy import *
-import matplotlib.pyplot as plt
-from matplotlib.cbook import get_sample_data
-from operator import truediv
-from matplotlib.ticker import NullFormatter
-
-def GetCorr(Cov):
-	B  = diag(Cov)
-	nB = B.size
-	C = ones((nB,nB))
-	D = B.reshape(nB,1)*C*B
-	return Cov/sqrt(D)
-
-def GetCov(A, axis=0):
-	if(axis==0):
-		Cov = A.dot(A.transpose())
-	else:
-		Cov = (A.transpose()).dot(A)
-	return Cov
-
-
-def PlotMatrix(matrix, fname, vmin=-1, vmax=1, title=''):
-	plt.figure()
-	im = plt.imshow(matrix, interpolation='none', alpha=None, vmin=vmin, vmax=vmax)
-	plt.xlabel('bin number')
-	plt.ylabel('bin number')
-	plt.title(title)
-	clb = plt.colorbar()
-	clb.set_label('Correlation', labelpad=-40, y=1.05, rotation=0)
-	plt.savefig(fname)
 
 #perform averaging
 def RunAverager(data,stat,syst, nToyMC=0, SysImp = False, itr=0, fixStat=False, corrStat=False):
 	
-	#initialization (optional information)
-	averager.avin.cleaninvars()
+	# Set input parameters
+	PyAverager.OutFolder = './TOutP'
+	PyAverager.nIterations = 0
+	PyAverager.writeoriginal = True
 
-	averager.avin.initvariables()
-	averager.avin.setoutputfolder('./TOutP')
-	averager.avin.initeration = itr
-	#averager.avin.setsnames(snames)
-	averager.avin.inwriteoriginal = True
+	PyAverager.fixstat = False
+	PyAverager.correctstatbias = corrStat
+	PyAverager.rescalestatsep = fixStat
 
-	averager.avin.infixstat = False #fixStat
-	averager.avin.incorrectstatbias = corrStat
-	averager.avin.inrescalestatsep = fixStat#False
+	PyAverager.postrotatesyst = False
+	PyAverager.dosystimpact = SysImp
+	PyAverager.ntoymc = nToyMC
+	PyAverager.useblas = False
 
-	averager.avin.inpostrotatesyst = False
-	averager.avin.indosystimpact = SysImp
-	averager.avin.inntoymc = nToyMC
-	averager.avin.inuseblas = False
-
-	dataAv,statAv,systAv = averager.average(data,stat,syst)
+	# Perform averaging
+	dataAv,statAv,systAv = PyAverager.average(data, stat, syst)
 	return dataAv,statAv,systAv
 
 # read the data
@@ -70,7 +39,7 @@ nMes = syst.shape[2]
 
 # Plot correlation matrix
 systBla = syst.transpose().reshape(nMes*nBins,nSyst)
-PlotMatrix(GetCorr(GetCov(systBla)), fname='CorrIni.pdf', title='Input correlation model')
+AvePlot.PlotMatrix(AveUtils.GetCorrMatrix(systBla), fname='CorrIni.pdf', title='Input correlation model')
 
 # Run averager with different options
 dataAv,statAv,systAv = RunAverager(data,stat,syst, 0, False)
@@ -86,56 +55,13 @@ shiftTrue = loadtxt('Tshift.out')
 
 
 # Plotting averaging result
+AvePlot.PlotHistDecompose(PyAverager.getDataPulls()[0], 'AvPullData.pdf',
+						  ytitle='pull of data', xtitle='index of measured point')
 
-# definitions for the axes
-left, width = 0.1, 0.65
-bottom, height = 0.1, 0.85
-bottom_h = left_h = left + width + 0.01
-
-rect_scatter = [left, bottom, width, height]
-rect_histx = [left, bottom_h, width, 0.2]
-rect_histy = [left_h, bottom, 0.2, height]
-
-# hist pulls of data
-plt.figure()
-axScatter = plt.axes(rect_scatter)
-axScatter.errorbar(arange(len(averager.avout.pulldata[0])), 
-	averager.avout.pulldata[0], yerr=0,ecolor='black',marker='o',ls='')
-axScatter.set_xlim(-0.5,len(averager.avout.pulldata[0]))
-plt.ylabel('pull of data')
-plt.xlabel('index of measured point')
-#plt.setp(trimsnames)
-nullfmt = NullFormatter()
-axHisty = plt.axes(rect_histy)
-axHisty.yaxis.set_major_formatter(nullfmt)
-axHisty.hist(averager.avout.pulldata[0], orientation='horizontal')
-plt.xlabel('entry/bin')
-plt.plot()
-plt.savefig('AvPullData.pdf')
-plt.close()
+AvePlot.PlotHistDecompose(PyAverager.getSystShifts(), 'AvPullSyst.pdf',
+				  ytitle='pull of systematics', xtitle='index of systematic source')
 
 
-# plot pulls of systematics
-plt.figure()
-axScatter = plt.axes(rect_scatter)
-axScatter.errorbar(arange(len(averager.avout.shiftsyst)), 
-	nan_to_num(averager.avout.shiftsyst)*(-1), yerr=0,ecolor='black',marker='o',ls='')
-
-axScatter.errorbar(arange(len(averager.avout.shiftsyst)), 
-	shiftTrue, yerr=0,ecolor='black',marker='o',ls='')
-
-plt.xlim(-0.5,len(averager.avout.shiftsyst))
-#plt.ylim(-2,2)
-plt.ylabel('pull of systematics')
-plt.xlabel('index of systematic source')
-
-axHisty = plt.axes(rect_histy)
-axHisty.yaxis.set_major_formatter(nullfmt)
-axHisty.hist(nan_to_num(averager.avout.pullsyst), orientation='horizontal')
-plt.xlabel('entry/bin')
-plt.plot()
-plt.savefig('AvPullSyst.pdf')
-plt.close()
 
 # Plot averaged data
 swapdata=swapaxes(data,0,1)
@@ -152,33 +78,8 @@ swapdata[0][len(swapdata[0])-1] = swapdata[0].mean()
 swapdata[1][len(swapdata[1])-1] = swapdata[1].mean()
 statAv[len(dataTrue)-1] = statAv[len(dataTrue)-1]/sqrt(len(dataTrue)-1)
 
+dataAll = stack((dataTrue, dataAv2, dataAv, dataAv5, dataAv4, swapdata[0], swapdata[1]))
+labels = ['Data True', 'Mult corr', 'Default', 'Stat corr', 'Stat corr + FixStat', 'Dataset 1', 'Dataset 2']
 
-bins=arange(len(dataAv))
-plt.figure()
-
-plt.fill_between(bins, 1+(totalAv/dataTrue), 1-(totalAv/dataTrue),
-    alpha=0.2, edgecolor='#1B2AFF', facecolor='#089FCC' )
-plt.fill_between(bins, 1+(statAv/dataTrue), 1-(statAv/dataTrue),
-    alpha=0.2, edgecolor='#1B2ACC', facecolor='#089FFF' )
-
-plt.errorbar(bins, map(truediv,dataAv2,dataTrue), yerr=map(truediv,statAv,dataTrue),
-			 marker='o',ls='', markersize='9', label='Mult corr')
-plt.errorbar(bins, map(truediv,dataAv,dataTrue), yerr=map(truediv,statAv,dataTrue),
-			 marker='o',ls='', label='Default')
-plt.errorbar(bins, map(truediv,dataAv5,dataTrue), yerr=map(truediv,statAv,dataTrue),
-			 marker='o',ls='', markersize='8', label='Stat corr')
-plt.errorbar(bins, map(truediv,dataAv4,dataTrue), yerr=map(truediv,statAv,dataTrue),
-			 marker='o',ls='', label='Stat corr + FixStat')
-plt.errorbar(bins, map(truediv,swapdata[0],dataTrue), yerr=map(truediv,statAv,dataTrue),
-			 marker='o',ls='', label='Dataset 1')
-plt.errorbar(bins, map(truediv,swapdata[1],dataTrue), yerr=map(truediv,statAv,dataTrue),
-			 marker='o',ls='', label='Dataset 2')
-
-
-plt.legend(numpoints=1, loc=0)
-plt.ylim(0.1,1.9)
-plt.xlabel('data points')
-plt.ylabel('All / Data True')
-plt.plot()
-plt.savefig('AvData.pdf')
-plt.close()
+AvePlot.PlotProfile(dataAll, statAv, totalAv, labels, 'AvData.pdf',
+			ratio=2, xtitle='data points', ytitle='All / Data True', rlims=[0.1, 1.9])
