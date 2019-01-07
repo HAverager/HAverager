@@ -34,6 +34,7 @@ averager steeringZpt
 
 This script demonstrate fortran and python implementation of HAverager using ZY2011 ATLAS data.
 ```
+ConvertDattoCSV.py [el,mu]*dat
 averager steering
 ./test.py
 ```

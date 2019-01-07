@@ -15,7 +15,7 @@ cd ./test/Zpt
 ```
 ConvertCSVtoDat.py *.csv
 averager steeringZpt  
-plotAve.py TOutF
+AvePlot.py TOutF
 ```
 **Results**  
 The results are printed out in the screen and stored (in case of default steering) in the directory ./TOutF
