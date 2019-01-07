@@ -79,9 +79,6 @@ C Fill in the rectangle correlation matrix (Asm):
             enddo
          enddo
 
-C      print *,Corr(1:2,1:3)
-C      print *,'2TAB',err2tab(1:NDiag,1:2)
-C      print *,'SYSTAB',SYSTAB(1:NSysTot,1:NDiag,1:2)
 
 C Fill in the box matrix (As):
 
@@ -130,9 +127,10 @@ C Fill in the box matrix (As):
             enddo
          endif
          call cpu_time(time2)
-         print *,'Fill As',time1,time2,time2-time1
+         if (IDEBUG.gt.0) then
+           print '(" Time Fill As" 3(e9.2))',time1,time2,time2-time1
+         endif
 
-      
 
 C     Add 1 to box diagonal:
          do j=1,NSYSTOT
@@ -213,7 +211,9 @@ C    Fill matrix A' = As - Asm^T Am^-1 Asm
       endif
       
       call cpu_time(time2)
-      print *,'Fill A^ ',time1,time2,time2-time1
+      if (IDEBUG.gt.0) then
+          print '(" Time Fill A^" 3(e9.2))',time1,time2,time2-time1
+      endif
 
       if (IDebug. ge. 4) then
          write(*,*) 'debug:'

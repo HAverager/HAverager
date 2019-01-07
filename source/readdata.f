@@ -101,22 +101,25 @@ C Reset scales to 1.0
 
       open(51,file=CFile,status='old',err=99)
 
-      print *,'Reading data file ...'
-      print *,CFile
+      if (IDEBUG.gt.-1) then
+          write(*,*) 'Reading data file: ', CFile
+      endif
       read(51,NML=Data,err=98)
 
 C
 C Save the name of dataset:
 C
       NName = NName + 1
-      write(*,*) 'NName= ', NName
-
+      if (IDEBUG.gt.-1) then
+          write(*,*) 'NName= ', NName
+      endif
 C 
 C Reaction index:
 C 
       idxReaction = GetReactionIdx(reaction)
-      write(*,*) ' idxReaction =', idxReaction
-
+      if (IDEBUG.gt.-1) then
+          write(*,*) ' idxReaction =', idxReaction
+      endif
 C
 C Check number of data per file:
 C
@@ -177,7 +180,9 @@ C Ignore dummy column
          endif
       enddo
 
+      if (IDEBUG.gt.-1) then
       write(*,*) '*** NUNCERT = ', NUncert
+      endif
 
 C Binning info:
       DATASETBinningDimension(NDATASETS) = NBinDimension
@@ -223,16 +228,18 @@ C--- Ignore: special case - will not be counted
          endif
       enddo
 
-C Output for debug:
-      write(*,*) ' Number of stored syst. sources: ', NSYSTOT
-
+      if (IDEBUG.gt.-1) then
+          write(*,*) ' Number of stored syst. sources: ', NSYSTOT
+      endif
       ii = 0
 
 C
 C Read data info:
 C
+      if (IDEBUG.gt.-1) then
+          write(*,*) '*** NData = ', NData
+      endif
 
-      write(*,*) '*** NData = ', NData
       do j=1,NData
 C Allow for comments:
  89      read (51,'(A)',err=1017,end=1018) ctmp
@@ -249,8 +256,9 @@ C Check coherence of the table info
          endif
          do i=1,NColumn
             if (ColumnName(i) .eq. ' ') then
-               print *,'Undefined ColumnName !!!'
-               print *,'Check name for column number = ',i
+                call hf_errlog(106,
+     $            'F:Undefined ColumnName !!!,'
+     $            //' Check name for column number = ')
                call HF_stop
             endif
          enddo
@@ -267,10 +275,8 @@ C Decode the columns
                allbins(iBin,j) = buffer(i)
             elseif ( ColumnType(i).eq.'Sigma' ) then
                XSections(j) = buffer(i)
-C               write(*,*) j,' CS = ', XSections(j)
             elseif ( ColumnType(i).eq.'Error' ) then
                iError = iError + 1
-C               write(*,*) 'iError = ',iError, buffer(i)
                syst(iError) = buffer(i)
             endif
          enddo
@@ -368,7 +374,7 @@ C
          idxGrid = GetGridIdx(ClosestBin, idxReaction, ncolumnMax)
       endif
 
-      if (IDebug.gt.0) then
+      if (IDebug.gt.1) then
          write(*,*) ' allbins = ',allbins(:,j)
          write(*,*) ' Closest = ',ClosestBin(1),ClosestBin(2)
          write(*,*) ' ======= Store data ======= ',

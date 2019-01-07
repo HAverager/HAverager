@@ -9,8 +9,11 @@ C     Intermediate dimensions:
 
       integer i,iP,idata,iSyst
 C--------------------------------------------------------------
-      print *,"Number of systematics",NSYSTOT,NSYSOTOT
-      print *,"Number of common data points ", NMeas
+
+      if (IDEBUG.gt.-1) then
+          print *,"Number of systematics",NSYSTOT,NSYSOTOT
+          print *,"Number of common data points ", NMeas
+      endif
 
 C     Allocate arrays:
       allocate(Box(NSYSTOT,NSYSTOT))
@@ -19,10 +22,13 @@ C     Allocate arrays:
       allocate(CORR(NSYSTOT,NMeas)) 
    
 C     Loop over offset systematics
-      print *,"Run offset systematics"
+      if (IDEBUG.gt.0) then
+        print *,"Run offset systematics"
+      endif
       do i=1,(2*NSYSOTOT)
-
-          print *,"Current offset systematic: ",i,"/",(2*NSYSOTOT)
+          if (IDEBUG.gt.0) then
+            print *,"Current offset systematic: ",i,"/",(2*NSYSOTOT)
+          endif
 
 C     Recalculate central values to estimate given offset systematics
           call ActivateOffsetSystematic(i)
@@ -37,12 +43,14 @@ C     Calculate offset systematics
 
 C     Check impact of systametics 
       if(doSystImpact)then
-C     Loop over all non-offset systematics     
-      print *,"Run syst. shifts" 
+C     Loop over all non-offset systematics
+      if (IDEBUG.gt.-1) then
+        print *,"Run syst. shifts"
+      endif
       do i=1,(2*NSYSTOT)
-
-          print *,"Current systematic: ",i,"/",(2*NSYSTOT)
-
+          if (IDEBUG.gt.0) then
+            print *,"Current systematic: ",i,"/",(2*NSYSTOT)
+          endif
 C     Recalculate central values to estimate given systematics
           call ActivateSystematic(i)
 
@@ -54,12 +62,14 @@ C     Recalculate central values to estimate given systematics
 
 C     Run ToyMC for statistical uncertainties
       if(nToyMC .gt. 0)then
-C     Loop over ToyMC shifts     
-      print *,"Run stat ToyMC" 
+C     Loop over ToyMC shifts
+      if (IDEBUG.gt.-1) then
+          print *,"Run stat ToyMC"
+      endif
       do i=1,(nToyMC)
-
-          print *,"Current ToyMC: ",i,"/",(nToyMC)
-
+          if (IDEBUG.gt.0) then
+            print *,"Current ToyMC: ",i,"/",(nToyMC)
+          endif
 C     Recalculate central values to estimate given systematics
           call ActivateStatToyMC(i)
 
@@ -73,7 +83,9 @@ C     Calculate ToyMC systematics
       endif
 
 C     Run nominal averaging
-      print *,"Run nominal averaging"
+      if (IDEBUG.gt.-1) then
+          print *,"Run nominal averaging"
+      endif
 
 C     Loop over all point and measurements
       do iP=1,NMeas
@@ -146,9 +158,9 @@ C     Allocate arrays:
 
 C     Loop over iterations
       do iItr=0,NIteration
-
-          print *,"Iteration",iItr,"/",NIteration,fillSyst
-
+          if (IDEBUG.gt.0) then
+            print *,"Iteration",iItr,"/",NIteration,fillSyst
+          endif
 C     If there is a multiplicative treatment, recalculate stat errors and repeat the average:
           if (iItr.ne.0) then
               Call StatRecalc
@@ -174,7 +186,9 @@ C       Do not run for offset systematics
         call LastIteration(diags,lasts,corrs,boxs,box)
       endif
       call cpu_time(time2)
-      print *,'LastItr: ',time2,time1,time2-time1
+      if (IDEBUG.gt.0) then
+          print '(" Time Last Itr" 3(e9.2))',time2,time1,time2-time1
+      endif
 
       deallocate(boxs)
       deallocate(DIAGs)

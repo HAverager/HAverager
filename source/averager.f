@@ -7,25 +7,13 @@ C--------------------------------------------------------------
       implicit none
       include 'common.inc'
       logical doCovconversion
-      
-C--------------------------------------------------------------
-      print *,'--------------------------------'
-     $     //'---------------------------------------------------'
-      print *,'    Initiating Iterative Linear Averager With'//
-     $     ' Systematic Uncertainties'
-      print *,' '
-      print *,'    HAverager '
-      print *,' '
-      print *,'---------------------------------------------------'
-     $     //'--------------------------------'
-C--------------------------------------------------------------
+
 
 C
 C Reading data and preparing for averaging:
 C
       Call hf_ErrLog(19031301,'I:Start HAverager')      
       
-
 C
 C Perhaps we want to convert covariance matrix -> nuisance representation ?
 C
@@ -50,7 +38,8 @@ C
 C Error logging:
 C
 
- 
-      call HF_errsum(6)
+      if (IDEBUG.gt.-1) then
+          call HF_errsum(6)
+      endif
 C--------------------------------------------------------------
       end

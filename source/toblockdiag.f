@@ -36,7 +36,10 @@ C Calc As'^-1 (box) and (last) Bave = As'^-1 (Cs − Asm^T Am^-1 Cm)
       endif
 
       call cpu_time(time2)
-      print *,'Inversion = ',time1,time2,time2-time1,NIteration
+
+      if (IDEBUG.gt.0) then
+           print '(" Time Inversion" 3(e9.2))',time1,time2,time2-time1
+      endif
 
       if (IFail.ne.0) then
          call hf_errlog(1,'F:Failed to invert syst. matrix !!!') 
@@ -87,7 +90,7 @@ C Calc error reduction
       enddo
 
 C Print the central values of the sys uncert and the errors of the systematics
-      if (IDEBUG.gt.0) then
+      if (IDEBUG.gt.-1) then
          call PrintSystSummary()
       endif
 
@@ -109,7 +112,9 @@ C Get NEW SYST Errors
       enddo
 
       call cpu_time(time1)
-      print *,'LI1 = ',time1,time2,time1-time2
+      if (IDEBUG.gt.0) then
+          print '(" Time LI1" 3(e9.2))',time1,time2,time1-time2
+      endif
 
 C Get stat and total uncertainty
       do if2=1,NMeas
@@ -145,7 +150,7 @@ C Calculate CHI2 according to the formula for chi2:
       call CalcChi2(chi2, ndf)
 
 C Write Averaged values and chi2
-      if (IDEBUG.gt.0) then
+      if (IDEBUG.gt.-1) then
          call PrintAveSummary(chi2, ndf)
       endif
 
@@ -173,7 +178,10 @@ C (box) = eigenvectors U of the matrix As' (box)
       Call MyDSYEVD(NSysTot, Box, NSysTot,WWW,ifail)
 
       call cpu_time(time1)
-      print *,'Decomposition = ',time1,time2,time1-time2
+      if (IDEBUG.gt.0) then
+          print '(a (3e9.2))'," Time Decomposition",
+     $    time1,time2,time1-time2
+      endif
 
 C Scale Box to take into account error reduction
 C (box) = UD
@@ -196,7 +204,9 @@ C Post-process Box3, make it triangular and positive along the diagonal
       endif
 
       call cpu_time(time1)
-      print *,'Rotation = ',time1,time2,time1-time2
+      if (IDEBUG.gt.0) then
+          print '(" Time Rotation" 3(e9.2))',time1,time2,time1-time2
+      endif
 
 
 C Get rotated systematic matrix:
@@ -208,7 +218,9 @@ C Get rotated systematic matrix:
       endif
 
       call cpu_time(time2)
-      print *,'LI8 = ',time1,time2,time2-time1
+      if (IDEBUG.gt.0) then
+          print '(" Time LI8" 3(e9.2))',time1,time2,time2-time1
+      endif
 
       do if2=1,NMeas
          do isys1=1,NSYSTOT
@@ -239,7 +251,9 @@ C (SystOrig) = Asm Am^-1 sqrt(Diag(As'^-1))
       enddo
 
       call cpu_time(time1)
-      print *,'LI9 = ',time1,time2,time1-time2
+      if (IDEBUG.gt.0) then
+          print '(" Time LI9" 3(e9.2))',time1,time2,time1-time2
+      endif
 
 C---------------------------------------------------------------------
       end

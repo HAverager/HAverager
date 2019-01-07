@@ -45,8 +45,6 @@ C     Write information about iterations
         include 'common.inc'
         integer isys,itr
 
-        print *,'Print: ',98,Chi2Itr(98)
-
         open (55,file=trim(OutputFolder)//'/ItrInfo.dat',
      $     status='unknown')
 

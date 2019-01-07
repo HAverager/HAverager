@@ -242,7 +242,9 @@ C     FixME
       include 'common.inc'
 C-----------------------------------------------------
       do i=1,NGrid
-         write(*,*) 'gridreaction(i) = ', gridreaction(i)
+         if (IDebug.gt.-1) then
+           write(*,*) 'gridreaction(i) = ', gridreaction(i)
+         endif
          if (reaction.eq.gridreaction(i)) then
             getreactionidx = i
             return
@@ -363,8 +365,9 @@ C---  Add new source
      $        'F:AddSystematics Error: exceeding NSystMax'
      $         //'Increase velue of NSystMax in settings.inc')
           endif
-
-          print *,"Add Offset Sys Source ",NSYSOTOT,CurrentSysName
+          if (IDebug.gt.-1) then
+            print *,"Add Offset Sys Source ",NSYSOTOT,CurrentSysName
+          endif
           iSys(idx) = NSYSTMAX+NSYSOTOT
           SystematicName(NSYSTMAX+NSYSOTOT) = CurrentSysName
           SysForm(NSYSTMAX+NSYSTOT) = 10+sysType(idx)
@@ -386,9 +389,9 @@ C---  Add new source
      $         //'Increase velue of NSystMax in settings.inc')
           endif
 
-          if (IDEBUG.gt.0) then
-             print *,"Add Sys Source ",NSYSTOT,trim(CurrentSysName),
-     &       ", form: ",CurrentSysForm
+          if (IDEBUG.gt.-1) then
+             print '(a i3 " " a15 a i3)',"Add Sys Source ",
+     $        NSYSTOT,CurrentSysName," form: ",CurrentSysForm
           endif
           iSys(idx) = NSYSTOT
           SystematicName(NSYSTOT) = CurrentSysName
@@ -411,8 +414,10 @@ C-----------------------------------------------------------------------------
 
         if(mod(i,2).eq.0)then        
             iSyst = i/2
-            print *,"Do variation Down for ",
+            if (IDebug.gt.1) then
+              print *,"Do variation Down for ",
      & SystematicName(NSYSTMAX+iSyst)
+            endif
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
@@ -430,8 +435,10 @@ C     Symmetric case
             enddo
         else
             iSyst = (i+1)/2
-            print *,"Do variation Up for ",
+            if (IDebug.gt.1) then
+              print *,"Do variation Up for ",
      & SystematicName(NSYSTMAX+iSyst)
+            endif
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
@@ -458,7 +465,9 @@ C-----------------------------------------------------------------------------
 
         if(mod(i,2).eq.0)then        
             iSyst = i/2
-            print *,"Do variation Down for ",SystematicName(iSyst)
+            if (IDebug.gt.1) then
+              print *,"Do variation Down for ",SystematicName(iSyst)
+            endif
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
@@ -477,7 +486,9 @@ C     Symmetric case
             enddo
         else
             iSyst = (i+1)/2
-            print *,"Do variation Up for ",SystematicName(iSyst)
+            if (IDebug.gt.1) then
+              print *,"Do variation Up for ",SystematicName(iSyst)
+            endif
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
@@ -507,7 +518,9 @@ C-----------------------------------------------------------------------------
         real gaus
 
 C     Do Shift
-        print *,"Do ToyMC shift ",i
+        if (IDebug.gt.1) then
+          print *,"Do ToyMC shift ",i
+        endif
 C     Loop over all point and measurements
         do iP=1,NMeas
           do idata=1,NMeasF2(iP)
