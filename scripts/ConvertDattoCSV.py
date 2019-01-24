@@ -41,7 +41,7 @@ for fname in fnames:
     nData = 0
     nCol = 0
     ColType = []
-    ColName = ''
+    ColName = []
     persent = ''
     counter = 0
 
@@ -62,7 +62,7 @@ for fname in fnames:
                 else:
                     ColType.append(s)
         if ('ColumnName' in line):
-            ColName = (line.split('=')[1]).replace("'","").replace("\n","").split(',')
+            ColInfo = (line.split('=')[1]).replace("'","").replace("\n","").split(',')
         if ('Percent' in line):
             s = (line.split('=')[1]).replace("'","").split(',')
             persent = [bool(x) for x in s]
@@ -71,19 +71,23 @@ for fname in fnames:
         if ('END' in line):
             break
 
+    data = np.loadtxt(fname, skiprows=counter)
 
     for i,s in enumerate(ColType):
         if 'Bin' in s:
-            ColName[i] = 'bin'+ColName[i].strip()
+            ColName.append('bin'+ColInfo[i].strip())
+            continue
         if 'Sigma' in s:
-            ColName[i] = 'data'
-        if 'uncor' in ColName[i]:
-            ColName[i] = 'stat'
+            ColName.append('data')
+            continue
+        if 'Dummy' in s:
+            data = np.delete(data, (i), axis=1)
+            continue
+        if 'uncor' in ColInfo[i]:
+            ColName.append('stat')
         else:
-            ColName[i] = ColName[i].strip()
-    F.close()
+            ColName.append(ColInfo[i].strip())
 
-    data = np.loadtxt(fname, skiprows=counter)
 
     # Write csv file
     f = open(os.path.basename(fname).replace('.dat', '.csv'), 'w')
