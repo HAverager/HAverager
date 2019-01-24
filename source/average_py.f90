@@ -267,11 +267,6 @@ cf2py intent(out) systOut
       integer ::  Inidxsys(nSystIn)
       integer ::  Insystype(nSystIn)
 C     integer iFile,iF2,iexp, isys
-
-C     Print size of the input information
-      print *,'Measured points          ',nDataIn
-      print *,'Data samples             ',nmeasIn
-      print *,'sources of uncertainties ',nSystIn
 C-------------------------------------------------------------------
 
 C     Initialize default values
@@ -296,21 +291,27 @@ C     Fill input parameters
 C     Create output directory
       CALL system("mkdir -p "//trim(OutputFolder))
 
-C     Print initial variables
-      print *,'Debug:                   ',IDebug
-      print *,'Number of iterations:    ',NIteration
-      print *,'Output mode:             ',iOutput,' Orthogonal'
-      print *,'WriteOriginal:           ',WriteOriginal
-      print *,'WriteSysTexTable:        ',WriteSysTexTable
-      print *,'PostRotateSyst:          ',PostRotateSyst
-      print *,'CorrectStatBias:         ',CorrectStatBias
-      print *,'RescaleStatSep:          ',RescaleStatSep
-      print *,'FixStat:                 ',FixStat
-      print *,'UseBlas:                 ',UseBlas
-      print *,'Check syst impact:       ',doSystImpact
-      print *,'Number of Toy MC:        ',NToyMC
-      print *,'Output folder:           ',OutputFolder
+      if (IDebug .gt. -1) then
+C         Print size of the input information
+          print *,'Measured points          ',nDataIn
+          print *,'Data samples             ',nmeasIn
+          print *,'sources of uncertainties ',nSystIn
 
+C         Print initial variables
+          print *,'Debug:                   ',IDebug
+          print *,'Number of iterations:    ',NIteration
+          print *,'Output mode:             ',iOutput,' Orthogonal'
+          print *,'WriteOriginal:           ',WriteOriginal
+          print *,'WriteSysTexTable:        ',WriteSysTexTable
+          print *,'PostRotateSyst:          ',PostRotateSyst
+          print *,'CorrectStatBias:         ',CorrectStatBias
+          print *,'RescaleStatSep:          ',RescaleStatSep
+          print *,'FixStat:                 ',FixStat
+          print *,'UseBlas:                 ',UseBlas
+          print *,'Check syst impact:       ',doSystImpact
+          print *,'Number of Toy MC:        ',NToyMC
+          print *,'Output folder:           ',OutputFolder
+      endif
 
 
 C     Fill internal arrays and variables
