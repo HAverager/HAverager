@@ -7,15 +7,28 @@ from matplotlib.ticker import NullFormatter
 from operator import truediv
 import argparse
 import AveUtils
+from matplotlib.colors import LogNorm
 
 
-
-def PlotMatrix(matrix, fname, vmin=-1, vmax=1, xtitle='bin number', ytitle='bin number', label='', title=''):
+def PlotMatrix(matrix, fname, vmin=-1, vmax=1, xtitle='bin number', ytitle='bin number', label='', title='',
+			   log = False, ytickspos=None, yticks=None, xtickspos=None, xticks=None, cmap=None):
 	plt.figure()
-	im = plt.imshow(matrix, interpolation='none', alpha=None, vmin=vmin, vmax=vmax)
+	lognorm = None
+	if log:
+		lognorm = LogNorm()
+
+	im = plt.imshow(matrix, interpolation='none', alpha=None, vmin=vmin, vmax=vmax,
+					norm=lognorm, cmap=cmap)
 	plt.xlabel(xtitle)
 	plt.ylabel(ytitle)
 	plt.title(title)
+
+	if ytickspos is not None:
+		plt.yticks(ytickspos, yticks)
+
+	if xtickspos is not None:
+		plt.xticks(xtickspos, xticks)
+
 	clb = plt.colorbar()
 	clb.set_label(label, labelpad=-40, y=1.05, rotation=0)
 	plt.savefig(fname)
@@ -100,7 +113,7 @@ def plotAll(folder):
 	systnames = np.loadtxt(folder+'sys.txt', dtype='str', usecols=[1])
 	data = np.loadtxt(folder+'tab.dat')
 	ndata = len(data)
-	pulldata = np.loadtxt(folder+'chi2map.dat', usecols=[3])
+	pulldata = np.loadtxt(folder+'chi2map.dat', usecols=[-2])
 
 	print ('Number of data points: ', ndata)
 	print ('Number of measurements: ', len(pulldata)/ndata)
