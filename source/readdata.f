@@ -56,7 +56,7 @@ C Namelist definition:
       integer i,j,jj,ii,ij,k,iBin,iError,itemp
 
 C Temporary buffer to read the data (allows for comments starting with *)
-      character *4096 CTmp
+      character *40960 CTmp
 
       integer idxreaction,idxGrid
 C Functions:

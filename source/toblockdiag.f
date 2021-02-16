@@ -279,6 +279,8 @@ C Invert box to get variance matrix:
 C     Print variance matrix
       Call PrintMatrix(box)
 
+      stop
+
 C
 C Get eigenvectors and eigenvalues:
 C

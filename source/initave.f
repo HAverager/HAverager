@@ -312,7 +312,7 @@ C Namelist definition:
       integer i,j,iBin,iError, iGrid, itemp, k
 
 C Temporary buffer to read the data (allows for comments starting with *)
-      character *4096 CTmp
+      character *40960 CTmp
       
       real ClosestBin(ncolumnMax)  ! The correspondent bin in the bingrid
 
