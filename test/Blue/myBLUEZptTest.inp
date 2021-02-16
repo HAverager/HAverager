@@ -1,0 +1,6 @@
+gSystem->Load("libBlue.so");
+
+.L myBLUEZptTest.cxx++
+myBLUEZptTest()
+
+.q

@@ -1,9 +1,8 @@
 &InFiles
   ! Specify data files to be averaged
-  NInputFiles = 3
-  InputFileNames(1) = 'elz.dat'
-  InputFileNames(2) = 'elzFwd.dat'
-  InputFileNames(3) = 'muz.dat'
+  NInputFiles = 2
+  InputFileNames(1) = 'ZeePtBornNorm.dat'
+  InputFileNames(2) = 'ZmumuPtBornNorm.dat'
 &End
 
 &CommonGrid
@@ -17,9 +16,9 @@
  ! Type of output:
   OutputMode  = 'ORTH'
  ! Add a prefix for output file names, syst. sources: 
-  OutputPrefix = 'ZComb' 
+  OutputPrefix = 'Ave' 
  ! Control output of the systematic sources:
-  PostRotateSyst = .true.
+  PostRotateSyst = .false.
  ! Define output folder
   OutputFolder = 'TOutF'
 WriteOriginal = .true.
@@ -32,10 +31,10 @@ WriteOriginal = .true.
  AverageType = 'MIXED'
   !*
   ! Readable only if the 'MULT' or 'Mixed' option is choosen:
-  Iteration = 2
+  Iteration = 0
  !***
  ! Rescale the stat and uncorr uncertainties separately:
-  RescaleStatSep = .true.
+  RescaleStatSep = .false.
  ! Correction of the syst bias for stat errors
   CorrectStatBias = .false.
  ! Keeping the stat errors fixed'

@@ -4,56 +4,195 @@ C     Averaging of data from different experiments
       implicit none
       include 'common.inc'
 C     Intermediate dimensions:
-      real*8
-     $     DIAG(NF2MAX),LAST(NF2MAX+NSYSTMAX),CORR(NSYSTMAX,NF2MAX)
-      real*8  Box(NSYSTMAX,NSYSTMAX)
-
-C     A copy:
-      real*8 boxs(NSYSTMAX,NSYSTMAX)
-      real*8 Diags(NF2MAX),Lasts(NF2MAX)
-     $     ,CORRs(NSYSTMAX,NF2MAX)
+      real*8, allocatable :: DIAG(:), LAST(:), CORR(:,:)
+      real*8, allocatable :: Box(:,:)
 
       integer i,iP,idata,iSyst
 C--------------------------------------------------------------
-      print *,"Number of systematics",NSYSTOT,NSYSOTOT
 
-C Allocate arrays:
-      
+      if (IDEBUG.gt.-1) then
+          print *,"Number of systematics",NSYSTOT,NSYSOTOT
+          print *,"Number of common data points ", NMeas
+      endif
 
+C     Allocate arrays:
+      allocate(Box(NSYSTOT,NSYSTOT))
+      allocate(DIAG(NMeas))      
+      allocate(LAST(NSYSTOT+NMeas))    
+      allocate(CORR(NSYSTOT,NMeas)) 
+   
 C     Loop over offset systematics
-      do i=1,(2*NSYSOTOT+1)
-
-          print *,"Current systematic: ",i,"/",(2*NSYSOTOT+1)
-
+      if (IDEBUG.gt.0) then
+        print *,"Run offset systematics"
+      endif
+      do i=1,(2*NSYSOTOT)
+          if (IDEBUG.gt.0) then
+            print *,"Current offset systematic: ",i,"/",(2*NSYSOTOT)
+          endif
 
 C     Recalculate central values to estimate given offset systematics
-C     Do nothing is case of nominal
-          call ActivateSystematic(i)
+          call ActivateOffsetSystematic(i)
 
-C     Loop over iterations
-          do iItr=0,NIteration
+          call RunIterativeAveraging(diag,last,corr,box,.true.,.false.)
 
-              print *,"Iteration",iItr,"/",NIteration
-
-C     If there is a multiplicative treatment, recalculate stat errors and repeat the average:
-              if (iItr.ne.0) then
-                  Call StatRecalc
-              endif
-
-              Call FillArrays(diag,last,corr,box)      ! Prepare the system of equations
-
-C     Find averaged value and systematics:
-              Call ToBlockDiag(diag,last,corr,box)     ! Perform fast inversion
-          enddo
-
-          Call AnalyseShifts() ! Analyse systematic shifts over iterations
-          
-          call LastIteration(diag,last,corr,box)       ! Prepare output, rotate syst.
-          call SaveAverageValue(i)
+          call SaveAverageOValue(i)
       enddo
-
 C     Calculate offset systematics
       call CalcOffsetSyst()
 
 
+C     Check impact of systametics 
+      if(doSystImpact)then
+C     Loop over all non-offset systematics
+      if (IDEBUG.gt.-1) then
+        print *,"Run syst. shifts"
+      endif
+      do i=1,(2*NSYSTOT)
+          if (IDEBUG.gt.0) then
+            print *,"Current systematic: ",i,"/",(2*NSYSTOT)
+          endif
+C     Recalculate central values to estimate given systematics
+          call ActivateSystematic(i)
+
+          call RunIterativeAveraging(diag,last,corr,box,.true.,.false.)
+
+          call SaveAverageValue(i)
+      enddo
+      endif
+
+C     Run ToyMC for statistical uncertainties
+      if(nToyMC .gt. 0)then
+C     Loop over ToyMC shifts
+      if (IDEBUG.gt.-1) then
+          print *,"Run stat ToyMC"
+      endif
+      do i=1,(nToyMC)
+          if (IDEBUG.gt.0) then
+            print *,"Current ToyMC: ",i,"/",(nToyMC)
+          endif
+C     Recalculate central values to estimate given systematics
+          call ActivateStatToyMC(i)
+
+          call RunIterativeAveraging(diag,last,corr,box,.true.,.false.)
+
+          call SaveAverageToyMCValue(i)
+      enddo
+
+C     Calculate ToyMC systematics
+      call CalcToyMCStat()
+      endif
+
+C     Run nominal averaging
+      if (IDEBUG.gt.-1) then
+          print *,"Run nominal averaging"
+      endif
+
+C     Loop over all point and measurements
+      do iP=1,NMeas
+        do idata=1,NMeasF2(iP)
+          F2TAB(ip,idata) = F2TABOrig(ip,idata)
+
+          F2ETAB(ip,idata) = F2ETABOrig(ip,idata)
+          do iSyst=1,NSYSOTOT
+
+        if(SysForm(iSyst).eq.12 .or.
+     &      SysForm(iSyst).eq.22)then
+          SysTab(iSyst,ip,idata) =
+     &     (SYSTABOrig(iSyst,ip,idata,1) -
+     &     SYSTABOrig(iSyst,ip,idata,2))/2
+        else if(SysForm(iSyst).eq. 11 .or. 
+     &    SysForm(iSyst).eq. 21 ) then
+          SysTab(iSyst,ip,idata) =
+     $     SYSTABOrig(iSyst,ip,idata,1)
+        endif
+
+          enddo
+        enddo
+      enddo
+
+      call RunIterativeAveraging(diag,last,corr,box,.true.,.true.)
+
+
+C     Analyse systematic shifts over iterations
+C     Call AnalyseShifts()
+
+C     Calculate offset systematics
+      if(doSystImpact)then
+          call CalcSystImpact()
+      endif
+
+      deallocate(Box)
+      deallocate(DIAG)
+      deallocate(LAST)
+      deallocate(CORR)
+
       end
+
+
+
+C     Averaging of data from different experiments
+      Subroutine RunIterativeAveraging(diag,last,corr,box,
+     & fillSyst,lastItr)
+
+      implicit none
+      include 'common.inc'
+      logical fillSyst
+      logical lastItr
+      integer i,j,k
+
+      real*8
+     $     DIAG(NMeas),LAST(NMeas+NSYSTOT),CORR(NSYSTOT,NMeas)
+      real*8  Box(NSYSTOT,NSYSTOT)
+
+C     A copy:
+      real*8, allocatable :: boxs(:,:)
+      real*8, allocatable :: Diags(:), Lasts(:), CORRs(:,:)
+
+      double precision time1,time2
+
+C     Allocate arrays:
+      allocate(boxs(NSYSTOT,NSYSTOT))
+      allocate(DIAGs(NMeas))
+      allocate(LASTs(NSYSTOT+NMeas))
+      allocate(CORRs(NSYSTOT,NMeas))
+
+C     Loop over iterations
+      do iItr=0,NIteration
+          if (IDEBUG.gt.0) then
+            print *,"Iteration",iItr,"/",NIteration,fillSyst
+          endif
+C     If there is a multiplicative treatment, recalculate stat errors and repeat the average:
+          if (iItr.ne.0) then
+              Call StatRecalc
+          endif
+
+C         Prepare the system of equations
+          Call FillArrays(diag,last,corr,box,fillSyst)
+
+C         Copy all arrays
+          diags(1:NMeas) = diag(1:NMeas)
+          corrs(1:NSysTot,1:NMeas) = corr(1:NSysTot,1:NMeas) 
+          boxs(1:NsysTot,1:NsysTot) = box(1:NsysTot,1:NsysTot)
+          lasts(1:NMeas+NSysTot) = last(1:NMeas+NSysTot)
+          
+C         Find averaged value and systematics:
+          Call ToBlockDiag(diags,lasts,corrs,boxs) 
+      enddo
+
+      call cpu_time(time1)
+      if(lastItr)then
+C       Prepare output, rotate syst.
+C       Do not run for offset systematics
+        call LastIteration(diags,lasts,corrs,boxs,box)
+      endif
+      call cpu_time(time2)
+      if (IDEBUG.gt.0) then
+          print '(" Time Last Itr" 3(e9.2))',time2,time1,time2-time1
+      endif
+
+      deallocate(boxs)
+      deallocate(DIAGs)
+      deallocate(LASTs)
+      deallocate(CORRs)
+      end
+

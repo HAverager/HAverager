@@ -16,6 +16,7 @@ C Basic namelists:
 
 C The temporary file name:
       character*256 cfile
+      character*128 gridtype
 
       namelist/averager/OutputMode,
      $     OutputPrefix, OutputFolder, IDebug,
@@ -47,8 +48,9 @@ C CME:
 
 C------------------------------------------------------
       if (iargc().ne.1) then
-         print *,'Program usage: averager steering_file_name'
-         stop
+         call hf_errlog(10,
+     $        'F:Steering file is not given. '
+     $         //'Program usage: averager steering_file_name')
       endif
 C
 C OPEN STEERING FILE:
@@ -88,8 +90,8 @@ C READ THE NUMBER AND NAMES OF DATAFILES FROM THE STEERING FILE:
 C
       rewind (51)
       read (51,nml=InFiles,end=54,err=56)
-      
-      write(*,*) 'Number of input files: ', NInputFiles
+
+
       if(NInputFiles.gt.NMEASMAX)then
           call hf_errlog(10,
      $        'F:number of input files exceed maximum'
@@ -100,9 +102,29 @@ C
 C Read average parameters:
 C
       read (51,nml=CommonGrid,end=57,err=58)
-      write(*,*) 'GridType = ',GridType
+
 
       read (51,nml=averager,end=52,err=53)
+
+C     Now debug level is known.
+C     Do some printouts
+
+      if (IDEBUG.gt.-1) then
+          print *,'--------------------------------'
+     $     //'---------------------------------------------------'
+          print *,'    Initiating Iterative Linear Averager With'//
+     $     ' Systematic Uncertainties'
+          print *,' '
+          print *,'    HAverager '
+          print *,' '
+          print *,'---------------------------------------------------'
+     $     //'--------------------------------'
+      endif
+
+      if (IDEBUG.gt.-1) then
+          write(*,*) 'Number of input files: ', NInputFiles
+          write(*,*) 'GridType = ',GridType
+      endif
 
       read (51,nml=BiasCorrection,end=59,err=60)
 
@@ -163,9 +185,11 @@ C
 
 C Store number of iterations
       NIteration = Iteration
-      write(*,*) 'NIteration = ',NIteration
+      if (IDEBUG.gt.-1) then
+          write(*,*) 'NIteration = ',NIteration
+      endif
       if(NIteration.gt.NIterMax)then
-         call hf_errlog(10081601,
+          call hf_errlog(10081601,
      $      'F:Number of iterations exceed maximum.'//
      $      ' Increase NIterMax in settings.inc')
       endif
@@ -224,17 +248,23 @@ C------------------------------------------------------------
       integer k
 C------------------------------------------------------------
       if (AverageType .eq. 'ADD') then
-        write(*,*) 'Uncertainties treated as Additive'
+        if (IDEBUG.gt.-1) then
+          write(*,*) 'Uncertainties treated as Additive'
+        endif
         do k  = 1, NSysTot
-          SystematicForm(k) = 'ADD'
+          SysForm(k) = 11
         enddo
       elseif (AverageType .eq. 'MULT') then
-        write(*,*) 'Uncertainties treated as Multiplicative'
+        if (IDEBUG.gt.-1) then
+          write(*,*) 'Uncertainties treated as Multiplicative'
+        endif
         do k  = 1, NSysTot
-          SystematicForm(k) = 'MULT'
+          SysForm(k) = 21
         enddo
       elseif (AverageType .eq. 'MIXED') then
-        write(*,*) 'Uncertainties treatment is read from the datasets'
+        if (IDEBUG.gt.-1) then
+          write(*,*) 'Uncertainties treatment is read from the datasets'
+        endif
       else
          call hf_errlog(1,
      $        'F:Unknown averaging type read from averager namelist '
@@ -339,9 +369,10 @@ C Reset scales to 1.0
       enddo
 
       open(51,file=CFile,status='old',err=99)
-
-      print *,'Reading data file for getting grid points...'
-      print *,CFile
+      if (IDEBUG.gt.-1) then
+         print *,'Reading data file for getting grid points...'
+         print *,CFile
+      endif
       read(51,NML=Data,err=98)
       
 C     
@@ -357,7 +388,9 @@ C Add new grid
       NGrid = NGrid + 1
 C Add a title of a new readed grid
       GridReaction(NGrid) = Reaction
-      write(*,*) ' GRID subroutine NGRID: ', NGrid
+      if (IDEBUG.gt.-1) then
+        write(*,*) ' GRID subroutine NGRID: ', NGrid
+      endif
 C
       iGrid = NGrid
  666  continue
@@ -429,7 +462,6 @@ C Decode the columns
          do i=1,NColumn
             if (ColumnType(i).eq.'Bin') then
                iBin = iBin + 1
-C               write(*,*) 'iBin= ', iBin, ' buffer = ', buffer(i)
                allbins(iBin,j) = buffer(i)
             endif
          enddo
@@ -441,8 +473,6 @@ C
          idxGrid = GetGridIdx( allbins(:,j), idxReaction, ndimensionmax)
 
       if (idxGrid.gt.0) then ! check that this bin coincides with some previous one
-c	  write(*,*) idxGrid
-c	  write(*,*) 'Such bin already exist'
 	  goto 555
       else ! if this bin is a new bin
 	  NPointGrid(idxReaction) = NPointGrid(idxReaction) + 1
@@ -454,14 +484,13 @@ c	  write(*,*) 'Such bin already exist'
 	  itemp = NPointGrid(idxReaction)
 	  do k = 1, iBin
 	    GridPoints(itemp,k,iGrid) = allbins(k,j) ! Store bins for given line of the file
-C	    WRITE(*,*) ' GP: ',GridPoints(itemp,k,iGrid)
 	    GridBinNames(k,iGrid) = BinName(k) ! Store bin names
 	  enddo
       endif
  555    continue
       enddo
 
-      close (51)
+      ! close (51)
 
       
       return
@@ -512,12 +541,15 @@ C Initialize:
 
       do i=1,NREACTMAX
          if (GridFiles(i).ne.'') then
-            print *,'Read grid file'
-            print *,GridFiles(i)
+            if (IDEBUG.gt.-1) then
+               print *,'Read grid file'
+               print *,GridFiles(i)
+            endif
             open (52,file=GridFiles(i),err=91)
             read (52,nml=Grid,err=92,end=93)
-            
-            write(*,*) ' GRID FUNCTION: ', Reaction
+            if (IDEBUG.gt.-1) then
+              write(*,*) ' GRID FUNCTION: ', Reaction
+            endif
 C Check if the grid is given for existing reaction, if yes: update
             do j=1,NGrid
                if (Reaction.eq.GridReaction(j)) then
@@ -536,7 +568,9 @@ C Add new grid
 
 C Add a title of a new readed grid
             GridReaction(NGrid) = Reaction
-            write(*,*) ' NGRID: ', NGrid
+            if (IDEBUG.gt.-1) then
+              write(*,*) ' NGRID: ', NGrid
+            endif
 C
             iGrid = NGrid
  61         continue
@@ -548,11 +582,15 @@ C Store
             endif
 
             NPointGrid(iGrid) = NPointGrid(iGrid) + NPoints
-            write(*,*) 'NPointGrid = ', NPointGrid(iGrid)
+            if (IDEBUG.gt.-1) then
+              write(*,*) 'NPointGrid = ', NPointGrid(iGrid)
+            endif
             NDimensionGrid(iGrid) = NDimension
             do k=1,NDimension
                GridBinNames(k,iGrid) = BinNames(k)
-               write(*,*) 'GridBinNames: ',k,iGrid,BinNames(k)
+               if (IDEBUG.gt.-1) then
+                  write(*,*) 'GridBinNames: ',k,iGrid,BinNames(k)
+               endif
             enddo
 
 C Read the file

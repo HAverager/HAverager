@@ -1,3 +1,2 @@
-C --
-	include 'settings.inc'
-	include 'data.inc'
+      include 'settings.inc'
+      include 'data.inc'

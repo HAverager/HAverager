@@ -124,23 +124,16 @@ C     First check if already present:
       
       !> Function to store data point. Returns data entry
       integer Function StoreData(idxData, Value, StatUncor, Stat, 
-     $     Uncor, Total, NSys, Syst, SystematicType, iDataFile )
+     $     Uncor, Total, NSys, Syst, iSys, systype, iDataFile )
 
       implicit none
       include 'common.inc'
       integer idxData, NSys, iDataFile
       double precision Value, StatUncor, Stat, Uncor, Total, Syst(*)
-      character*(*) SystematicType(*)
-      integer idxP
-      integer jj, k
-
-      Integer nPlus, nMinus
-      integer systype
-      character *32 CurrentSysName
-      character *1 CurrentSysForm
+      integer SysType(*), iSys(*)
+      integer idxP, i
 C-----------------------------
 
-      !> Add an entry:
       NMEASF2(idxData) = NMEASF2(idxData) + 1
        if (NMEASF2(idxData).gt.NMEASMAX) then
          Call HF_ErrLog(20031303,
@@ -152,114 +145,41 @@ C-----------------------------
 
       F2TAB(idxData,idxP)          = Value
       F2TABOrig(idxData,idxP)      = Value
-      F2ETAB(idxData,idxP)         = StatUncor
 
+      F2ETAB(idxData,idxP)         = StatUncor
       F2ETABOrig(idxData,idxP)     = StatUncor
+
       F2ETAB_STA(idxData,idxP)     = Stat
       F2ETAB_STAORIG(idxData,idxP) = Stat
       F2ETAB_UNC(idxData,idxP)     = Uncor
       F2ETAB_TOT(idxData,idxP)     = Total
-
       F2DataFile(idxData,idxP)     = iDataFile
-C      print *, Nsys, NSysTot
 
-      do jj = 1, NSys
-C     Check up (2) and down (3) systematics
-         if(Index(SystematicType(jj), "+").gt.0) then
-           CurrentSysName =
-     &    SystematicType(jj)(:Index(SystematicType(jj), "+")-1) //
-     &    SystematicType(jj)(Index(SystematicType(jj), "+")+1:)
-          systype = 2
-         else if(Index(SystematicType(jj), "-").gt.0) then
-           CurrentSysName =
-     &    SystematicType(jj)(:Index(SystematicType(jj), "-")-1) //
-     &    SystematicType(jj)(Index(SystematicType(jj), "-")+1:)
-          systype = 3
-         else
-            CurrentSysName = SystematicType(jj)
-            systype = 1
-         endif
-
-C---- Cut systematics form
-         if(Index(CurrentSysName, ":").gt.0) then
-           CurrentSysForm =
-     &     CurrentSysName(Index(CurrentSysName, ":")+1:)
-           CurrentSysName =
-     &     CurrentSysName(:Index(CurrentSysName, ":")-1)
-         else
-            CurrentSysForm = "M"
-         endif
-
-C---  If it is offset systematic
-         if(CurrentSysForm .eq. "O")then
-             do k  = 1, NSysOTot
-                if ( SystematicOName(k).eq.CurrentSysName ) then
 C     Define global variable for type of shift >2 - Up/Down shift
-C            print *,systype
-                  if(systype.gt.1)then
-                    ShiftOType(k,idxData,idxP) =
-     &              ShiftOType(k,idxData,idxP) + 1
-C                   print *,"DoIncreaseShiftType",ShiftType(k)
-                  endif
-                  SYSTABOOrig(k,idxData,idxP,systype) = Syst(jj)
-                  if (IDebug.gt.2) then
-                     print *, "Offset",k, idxData, idxP, systype,
-     &               Syst(jj),ShiftOType(k,idxData,idxP)
-                  endif
-
-                  if(ShiftOType(k,idxData,idxP).eq.1) then
-                     continue
-                  endif
-C                 print *,"OType",ShiftOType(k),k,SystematicOName(k)
-                endif
-             enddo
-         else
-
-C---  non-offset systematic
-         do k  = 1, NSysTot
-            if ( SystematicName(k).eq.CurrentSysName ) then
-C     Define global variable for type of shift >2 - Up/Down shift
-C            print *,systype
-              if(systype.gt.1)then
-                ShiftType(k,idxData,idxP) =
-     &           ShiftType(k,idxData,idxP) + 1
-C                print *,"DoIncreaseShiftType",ShiftType(k)
-              endif
-               SYSTABOrig(k,idxData,idxP,systype) = Syst(jj)
-               if (IDebug.gt.2) then
-                 print *, k, idxData, idxP, systype, Syst(jj),
-     &           ShiftType(k,idxData,idxP)
-               endif
-
-C     Fill SysTab array using SYSTABOrig
-               if(ShiftType(k,idxData,idxP).eq.2) then
-                SysTab(k,idxData,idxP) =
-     &         (SYSTABOrig(k,idxData,idxP,2) -
-     &          SYSTABOrig(k,idxData,idxP,3))/2
-               else if(ShiftType(k,idxData,idxP).eq.0) then
-                 SysTab(k,idxData,idxP) = SYSTABOrig(k,idxData,idxP,1)
-               endif
-
-               if(ShiftType(k,idxData,idxP).eq.1) then
-                 continue
-               endif
-C               print *,"ShiftType",ShiftType(k),k,SystematicName(k)
-            endif
-         enddo
-
-         endif
-      enddo
-
-
-C     Print error message if Up/Down part is missing
-      do k  = 1, NSysTot
-        if(ShiftType(k,idxData,idxP).eq.1) then
-          call hf_errlog(11,
-     $        'F:Missing Up or Down systematics for: '
-     $         //SystematicName(k))
+      do i = 1, NSys
+        if(iSys(i).ne.0)then
+          SYSTABOrig(iSys(i),idxData,idxP,SysType(i)) = Syst(i)
         endif
       enddo
 
+C     Fill SysTab array using SYSTABOrig
+      do i = 1, NSys
+        if(iSys(i).eq.0)then
+          continue
+        endif
+        if(iSys(i).le. NSYSTMAX)then
+        if(SysForm(iSys(i)).eq.12 .or.
+     &     SysForm(iSys(i)).eq.22)then
+          SysTab(iSys(i),idxData,idxP) =
+     &     (SYSTABOrig(iSys(i),idxData,idxP,1) -
+     &     SYSTABOrig(iSys(i),idxData,idxP,2))/2
+        else if(SysForm(iSys(i)).eq. 11 .or. 
+     &          SysForm(iSys(i)).eq. 21 ) then
+          SysTab(iSys(i),idxData,idxP) =
+     $     SYSTABOrig(iSys(i),idxData,idxP,1)
+        endif
+        endif
+      enddo
 
       end
 
@@ -305,7 +225,7 @@ C     FixME
                SysTab(k,idxData,idxP) =
      $              W1*SysTab(k,idxData,idxP) +
      $              W2*Syst(jj) 
-               SYSTABOrig(k,idxData,idxP,ShiftType(k,idxData,idxP)) =
+               SYSTABOrig(k,idxData,idxP,1) =
      &          SysTab(k,idxData,idxP)
             endif
          enddo
@@ -322,7 +242,9 @@ C     FixME
       include 'common.inc'
 C-----------------------------------------------------
       do i=1,NGrid
-         write(*,*) 'gridreaction(i) = ', gridreaction(i)
+         if (IDebug.gt.-1) then
+           write(*,*) 'gridreaction(i) = ', gridreaction(i)
+         endif
          if (reaction.eq.gridreaction(i)) then
             getreactionidx = i
             return
@@ -368,80 +290,93 @@ C------------------------------------------------------
 C-----------------------------------------------------------------------------
 !> Add systematic source (26.10.2015)
 C
-!>  Detect "+" and "-" signs, at the end of source name, for asymmetric errors
+!>  Detect "+" and "-" signs, at the end of source name, for asymmetric errors (x2)
+!>  Symmectic systematic uncertainties marked as (x1)
 !>
 !>  Detect ":" modifiers
 !>
-!>   :M  - "multiplicative"
+!>   :M  - "multiplicative" (1x)
 !>
-!>   :A  - "additive"
+!>   :A  - "additive" (2x)
 !>
 C-----------------------------------------------------------------------------
-      subroutine AddSystematics(SName)
+      subroutine AddSystematics(SName, idx, iSys, sysType)
 
       implicit none
       include 'common.inc'
 
       character*(*) SName
+      integer sysType(*) ! type of systematic idx (output)
+      integer iSys(*) ! index of systematic idx in globar array (output)
+      integer idx     ! index of systematic in local array
+
       character *32 CurrentSysName
-      character *1  CurrentSysForm
+      character *1 ctmp
+      integer  CurrentSysForm
 
       integer j
 
 C-----------------------------------------
-
-      print *,"New syst",SName
 
 C---- Cut +/- in the sys name
       if(Index(SName, "+").gt.0) then
            CurrentSysName =
      &    SName(:Index(SName, "+")-1) //
      &    SName(Index(SName, "+")+1:)
+          sysType(idx) = 1
+          CurrentSysForm = 12
       else if(Index(SName, "-").gt.0) then
            CurrentSysName =
      &    SName(:Index(SName, "-")-1) //
      &    SName(Index(SName, "-")+1:)
+          sysType(idx) = 2
+          CurrentSysForm = 12
       else
-            CurrentSysName = SName
+          CurrentSysName = SName
+          sysType(idx) = 1
+          CurrentSysForm = 11
       endif
 
 C---- Cut systematics form
       if(Index(CurrentSysName, ":").gt.0) then
-          CurrentSysForm =
+          ctmp =
      &     CurrentSysName(Index(CurrentSysName, ":")+1:)
+          if(ctmp.eq.'A')then
+            CurrentSysForm = CurrentSysForm + 10
+          endif
           CurrentSysName =
      &     CurrentSysName(:Index(CurrentSysName, ":")-1)
-      else
-          CurrentSysForm = "M"
       endif
 
-      print *,"Form: ",CurrentSysForm
-
 C---  Case of offset systematic
-      if(CurrentSysForm=="O")then
+      if(ctmp=="O")then
 C---  Check if the source already exists
           do j=1,NSYSOTOT
-               if ( SystematicOName(j).eq.CurrentSysName) then
+               if (SystematicName(NSYSTMAX+j).eq.CurrentSysName) then
+                  iSys(idx) = NSYSTMAX+j
                   return
                endif
           enddo
 
 C---  Add new source
           NSYSOTOT = NSYSOTOT + 1
-          if (NSYSOTOT.gt.NSystMax) then
+          if (NSYSOTOT.gt.NSystOMax) then
                call hf_errlog(10,
      $        'F:AddSystematics Error: exceeding NSystMax'
      $         //'Increase velue of NSystMax in settings.inc')
           endif
-
-          print *,"Add Offset Sys Source ",NSYSOTOT,CurrentSysName
-
-          SystematicOName(NSYSOTOT) = CurrentSysName
+          if (IDebug.gt.-1) then
+            print *,"Add Offset Sys Source ",NSYSOTOT,CurrentSysName
+          endif
+          iSys(idx) = NSYSTMAX+NSYSOTOT
+          SystematicName(NSYSTMAX+NSYSOTOT) = CurrentSysName
+          SysForm(NSYSTMAX+NSYSTOT) = 10+sysType(idx)
           return;
       else
 C---  Check if the source already exists
           do j=1,NSYSTOT
                if ( SystematicName(j).eq.CurrentSysName) then
+                  iSys(idx) = j
                   return
                endif
           enddo
@@ -454,11 +389,13 @@ C---  Add new source
      $         //'Increase velue of NSystMax in settings.inc')
           endif
 
-          print *,"Add Sys Source ",NSYSTOT,CurrentSysName,"form: ",
-     &    CurrentSysForm
-
+          if (IDEBUG.gt.-1) then
+             print '(a i3 " " a15 a i3)',"Add Sys Source ",
+     $        NSYSTOT,CurrentSysName," form: ",CurrentSysForm
+          endif
+          iSys(idx) = NSYSTOT
           SystematicName(NSYSTOT) = CurrentSysName
-          SystematicForm(NSYSTOT) = CurrentSysForm
+          SysForm(NSYSTOT) = CurrentSysForm
           return;
       endif
 
@@ -468,76 +405,159 @@ C-----------------------------------------------------------------------------
 !>    Recalculate central values to estimate given offset systematics
 !>    Do nothing is case of nominal
 C-----------------------------------------------------------------------------
+      Subroutine ActivateOffsetSystematic(i)
+        implicit none
+        include 'common.inc'
+
+        integer i
+        integer iSyst, iP, idata
+
+        if(mod(i,2).eq.0)then        
+            iSyst = i/2
+            if (IDebug.gt.1) then
+              print *,"Do variation Down for ",
+     & SystematicName(NSYSTMAX+iSyst)
+            endif
+C     Loop over all point and measurements
+            do iP=1,NMeas
+              do idata=1,NMeasF2(iP)
+C     Asymmetric down case
+                if(SysForm(NSYSTMAX+iSyst).eq. 12) then
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &             SYSTABOrig(NSYSTMAX+iSyst,ip,idata,2)
+C     Symmetric case
+                else
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) -
+     &               SYSTABOrig(NSYSTMAX+iSyst,ip,idata,1)
+                endif
+
+              enddo
+            enddo
+        else
+            iSyst = (i+1)/2
+            if (IDebug.gt.1) then
+              print *,"Do variation Up for ",
+     & SystematicName(NSYSTMAX+iSyst)
+            endif
+C     Loop over all point and measurements
+            do iP=1,NMeas
+              do idata=1,NMeasF2(iP)
+C     Asymmetric up/symmetric case
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &               SYSTABOrig(NSYSTMAX+iSyst,ip,idata,1)
+              enddo
+            enddo
+            return
+       endif
+
+      end
+
+
+C-----------------------------------------------------------------------------
+!>    Recalculate central values to estimate impact of given systematics
+C-----------------------------------------------------------------------------
       Subroutine ActivateSystematic(i)
         implicit none
         include 'common.inc'
 
         integer i
         integer iSyst, iP, idata
-        print *,"Activate",NSYSOTOT
-C     Loop over offset systeatics
-        do iSyst=1,NSYSOTOT
 
-C     Do Shift Up
-          if(((2*iSyst)-1) .eq. i)then
-            print *,"Do variation Up for ",SystematicOName(iSyst)
+        if(mod(i,2).eq.0)then        
+            iSyst = i/2
+            if (IDebug.gt.1) then
+              print *,"Do variation Down for ",SystematicName(iSyst)
+            endif
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
-C     Asymmetric case
-                if(ShiftOType(iSyst,ip,idata) .eq. 2) then
+C     Asymmetric down case
+                if(SysForm(iSyst).eq. 12 .or.
+     &             SysForm(iSyst).eq. 22 ) then
                   F2TAB(ip,idata) = F2TABOrig(ip,idata) +
-     &             SYSTABOOrig(iSyst,ip,idata,2)
-C     Symmetric case
-                else
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
-     &               SYSTABOOrig(iSyst,ip,idata,1)
-                endif
-C                  print *,F2TAB(ip,idata),F2TABOrig(ip,idata)
-C                  print *,SYSTABOOrig(iSyst,ip,idata,1)
-              enddo
-            enddo
-            return
-          endif
-
-C     Do Shift Down
-          if((2*iSyst) .eq. i)then
-            print *,"Do variation Down for ",SystematicOName(iSyst)
-C     Loop over all point and measurements
-            do iP=1,NMeas
-              do idata=1,NMeasF2(iP)
-C     Asymmetric case
-                if(ShiftOType(iSyst,ip,idata) .eq. 2) then
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
-     &             SYSTABOOrig(iSyst,ip,idata,3)
+     &             SYSTABOrig(iSyst,ip,idata,2)
 C     Symmetric case
                 else
                   F2TAB(ip,idata) = F2TABOrig(ip,idata) -
-     &               SYSTABOOrig(iSyst,ip,idata,1)
+     &               SYSTABOrig(iSyst,ip,idata,1)
                 endif
-C                  print *,F2TAB(ip,idata),F2TABOrig(ip,idata)
-C                  print *,SYSTABOOrig(iSyst,ip,idata,1)
+
               enddo
             enddo
-            return
-          endif
-
-        enddo
-
+        else
+            iSyst = (i+1)/2
+            if (IDebug.gt.1) then
+              print *,"Do variation Up for ",SystematicName(iSyst)
+            endif
 C     Loop over all point and measurements
             do iP=1,NMeas
               do idata=1,NMeasF2(iP)
-C                  print *,ip,idata,F2TAB(ip,idata),F2TABOrig(ip,idata)
-                  F2TAB(ip,idata) = F2TABOrig(ip,idata)
+C     Asymmetric up/symmetric case
+                  F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &               SYSTABOrig(iSyst,ip,idata,1)
               enddo
             enddo
+            return
+       endif
 
-        print *,"Do nominal average "
+      end
+
+
+C-----------------------------------------------------------------------------
+!>    Recalculate central values to run stat. ToyMC
+C-----------------------------------------------------------------------------
+      Subroutine ActivateStatToyMC(i)
+        implicit none
+        include 'common.inc'
+        EXTERNAL RANLUX
+
+
+        integer i
+        integer N, iP, idata, ierr
+        real amu, E
+        real gaus
+
+C     Do Shift
+        if (IDebug.gt.1) then
+          print *,"Do ToyMC shift ",i
+        endif
+C     Loop over all point and measurements
+        do iP=1,NMeas
+          do idata=1,NMeasF2(iP)
+            E = F2TABOrig(ip,idata) /
+     &            F2ETAB_STAORIG(ip,idata)**2
+            amu = F2TABOrig(ip,idata)*E
+            CALL RNPSSN(amu,N,ierr)
+            CALL RNORMX(gaus,1,RANLUX)
+
+C           Use puissonin errors
+C           F2TAB(ip,idata) = N / E
+
+C           Use gaussian errors
+            F2TAB(ip,idata) = F2TABOrig(ip,idata) +
+     &       F2ETAB_STAORIG(ip,idata)*gaus
+          enddo
+        enddo
 
       end
 
 C-----------------------------------------------------------------------------
-!>    Save average wavue after a certain offset systematic
+!>    Save average value after a certain offset systematic
+C-----------------------------------------------------------------------------
+      Subroutine SaveAverageOValue(i)
+        implicit none
+        include 'common.inc'
+        integer i, iP
+
+C     Loop over all point
+        do iP=1,NMeas
+            F2VaveOSyst(iP,i) = f2vave(iP)
+        enddo
+
+      end
+
+C-----------------------------------------------------------------------------
+!>    Save average value after a certain systematic shift of measured point
 C-----------------------------------------------------------------------------
       Subroutine SaveAverageValue(i)
         implicit none
@@ -551,6 +571,21 @@ C     Loop over all point
 
       end
 
+C-----------------------------------------------------------------------------
+!>    Save average value after a certain systematic shift of measured point
+C-----------------------------------------------------------------------------
+      Subroutine SaveAverageToyMCValue(i)
+        implicit none
+        include 'common.inc'
+        integer i, iP
+
+C     Loop over all point
+        do iP=1,NMeas
+            F2VaveToyMCStat(iP,i) = f2vave(iP)
+        enddo
+
+      end
+
 
 C-----------------------------------------------------------------------------
 !>    Save chi2 after a certain iterations
@@ -558,26 +593,11 @@ C-----------------------------------------------------------------------------
       Subroutine SaveChi2()
         implicit none
         include 'common.inc'
-        integer i, j, isys
-        real sum, chi2loc, chi2
+        integer ndf
+        real chi2
 
-C       Fill Chi^2 and NDoF
-        chi2 = 0.0
-        do i = 1, NMeas
-         do j = 1, NMeasF2(i)
-            sum = F2TAB(i,j)
-            do isys = 1, NSYSTOT
-               sum = sum + SYSTAB(isys,i,j)*SYSSH(isys)
-            enddo
-            chi2loc = (F2VAVE(i)-sum)/ (F2ETAB(i,j))
-            chi2 = chi2 + chi2loc**2
-         enddo
-        enddo
-        do isys=1,NSYSTOT
-          chi2 = chi2 + SYSSH(isys)**2
-        enddo
- 
-        Chi2Itr(iItr) = chi2 + SYSSH(isys)**2
+        call CalcChi2(chi2, ndf)
+        Chi2Itr(iItr) = chi2
       end
 
 
@@ -594,13 +614,55 @@ C     Loop over bins
 C     Loop over systematics
           do isys=1,NSYSOTOT
               OSyst(if2,isys)=
-     $         ((F2VaveSyst(if2,2*isys-1)-f2vave(if2)) -
-     $        (F2VaveSyst(if2,2*isys)-f2vave(if2)))/2
-              OSyst(if2,isys)=OSyst(if2,isys)/f2vave(if2)*100
+     $         ((F2VaveOSyst(if2,2*isys-1)-f2vave(if2)) -
+     $        (F2VaveOSyst(if2,2*isys)-f2vave(if2)))/2
+              OSystPercent(if2,isys)=OSyst(if2,isys)/f2vave(if2)*100
           enddo
         enddo
       end
 
+C-----------------------------------------------------------------------------
+!>    Calculate ToyMC statistical uncertainties
+C-----------------------------------------------------------------------------
+      Subroutine CalcToyMCStat()
+        implicit none
+        include 'common.inc'
+        integer if2, isys
+        real*8 b,b2
+
+C     Loop over bins
+        do if2=1,NMeas
+C     Loop over systematics
+          b = 0
+          b2 = 0
+          do isys=1,nToyMC
+            b = b + F2VaveToyMCStat(if2,isys)
+            b2 = b2 + F2VaveToyMCStat(if2,isys)**2
+          enddo
+          b = b/nToyMC
+          b2 = b2/nToyMC 
+          StatToyMC(if2)= SQRT(b2 - b**2)
+        enddo
+
+      end
+C-----------------------------------------------------------------------------
+!>    Calculate impact of systematics
+C-----------------------------------------------------------------------------
+      Subroutine CalcSystImpact()
+        implicit none
+        include 'common.inc'
+        integer if2, isys
+
+C     Loop over bins
+        do if2=1,NMeas
+C     Loop over systematics
+          do isys=1,NSYSTOT
+              SystImpact(if2,isys)=
+     $         ((F2VaveSyst(if2,2*isys-1)-f2vave(if2)) -
+     $        (F2VaveSyst(if2,2*isys)-f2vave(if2)))/2
+          enddo
+        enddo
+      end
 
 C-----------------------------------------------------------------------------
 !>    Analysis of shifts of asymmetric systematics in order to understand if

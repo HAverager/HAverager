@@ -14,7 +14,19 @@ C     Write output in X-Fitter format
       call writeXFitterOut()
 
 C     Write summary for off-set systematics
-      call outOffsetSyst()
+      if(NSYSOTOT .gt. 0)then
+          call outOffsetSyst()
+      endif
+
+C     Write summary for impact of systematics
+      if(doSystImpact)then
+          call outSystImpact()
+      endif
+
+C     Write summary for stat. ToyMC
+      if(nToyMC .gt. 0)then
+          call outToyMCStat
+      endif
 
 C     Write systematics shifts and pulls
       call WriteSystShifts()
@@ -32,8 +44,6 @@ C     Write information about iterations
         implicit none
         include 'common.inc'
         integer isys,itr
-
-        print *,'Print: ',98,Chi2Itr(98)
 
         open (55,file=trim(OutputFolder)//'/ItrInfo.dat',
      $     status='unknown')
@@ -96,13 +106,13 @@ C Prepare header:
          write (53,'(''Sigma", "stat", "uncor"'')',advance='no')
          write (53,'('','',500(''"'',A,i4''",''))', advance='no')
      $  ( 'sys'//Trim(OutputPrefix),i,i=1000+1,1000+NSysTot+NSysOTot-1)
-         write (53,'(A,i4,''"'')') 'sys'//Trim(OutputPrefix)
-     $        ,1000+NSysTot+NSysOTot
+         write (53,'(A,i4,A,''"'')') 'sys'//Trim(OutputPrefix)
+     $        ,1000+NSysTot+NSysOTot,':O'
 
          write (53,'(''  IndexDataset = '', i5)') 100+iPC
 
          write (53,'(''  Percent = '',500(A,'',''))')
-     $        ( 'true',i=1,2+NSysTot)
+     $        ( 'false',i=1,2+NSysTot)
 
          write (53,'(''&End '')')
 
@@ -113,9 +123,9 @@ C ... but a comment line first ...
      $        (trim(GridBinNames(i,idxReactionMeas(iPC)))
      $        ,i=1,NDimensionGrid(idxReactionMeas(iPC)))
 
-         write (53,'(4A12,100A32)') 'Average ', 'StatErr ',
-     $        'Uncor   ', (SystematicName(isys),isys=1,NSYSTOT),
-     $        (SystematicOName(isysOff),isysOff=1,NSYSOTOT)
+         write (53,'(5A12,100A32)') 'Average', 'Stat','Uncor  ',
+     $        (SystematicName(isys),isys=1,NSYSTOT),
+     $        (SystematicName(NSYSTMAX+isysOff),isysOff=1,NSYSOTOT)
 
 
          do if2=1,NMeas
@@ -132,17 +142,17 @@ C ... but a comment line first ...
                if (iOutput.eq.1) then
                   write(53,'(3ES12.4,700F8.3)')
      $                 F2VAVE(if2),
-     $                 F2EstAveTrue(if2)/F2VAVE(if2)*100.
-     $                 ,uncor_syst/F2VAVE(if2)*100.
-     $                 ,(SystDiagPercent(isys,if2),isys=1,NSYSTOT)
+     $                 F2EstAveTrue(if2)
+     $                 ,uncor_syst
+     $                 ,(SystDiag(isys,if2),isys=1,NSYSTOT)
      $                 ,(OSyst(if2,isysOff),isysOff=1,NSYSOTOT)
                else
 C Write original sources, neglecting correlations (!)
                   write(53,'(3ES12.4,700F8.3)')
      $                 F2VAVE(if2),
-     $                 F2EstAveTrue(if2)/F2VAVE(if2)*100.
-     $                 ,uncor_syst/F2VAVE(if2)*100.
-     $                 ,(SystOrigPercent(isys,if2),isys=1,NSYSTOT)
+     $                 F2EstAveTrue(if2)
+     $                 ,uncor_syst
+     $                 ,(SystOrig(isys,if2),isys=1,NSYSTOT)
      $                 ,(OSyst(if2,isysOff),isysOff=1,NSYSOTOT)
                endif
             endif
@@ -255,7 +265,7 @@ C
       open (51,file=trim(OutputFolder)//'/tab.dat',status='unknown')
       if (iOutput.eq.0) then
          do if2=1,NMeas
- 1718       format (7F14.7,200F8.4)
+ 1718       format (2F14.7,200F9.4)
 
 C For now Y uses CM for the first experiment:
             uncor_syst = sqrt(f2estave(if2)**2
@@ -265,8 +275,7 @@ C For now Y uses CM for the first experiment:
      $           ,f2vave(if2)
      $           ,f2estaveTrue(if2)
      $           ,uncor_syst
-     $           ,F2EAVE(if2)
-     $           ,(SystOrigPercent(isys,if2),isys=1,NSYSTOT)
+     $           ,(SystOrig(isys,if2),isys=1,NSYSTOT)
      $           ,(OSyst(if2,isysOff),isysOff=1,NSYSOTOT)
          enddo
 C
@@ -284,8 +293,7 @@ C For now Y uses CM for the first experiment:
      $           ,f2vave(if2)
      $           ,f2estaveTrue(if2)
      $           ,uncor_syst
-     $           ,F2EAVE(if2)
-     $           ,(SystDiagPercent(isys,if2),isys=1,NSYSTOT)
+     $           ,(SystDiag(isys,if2),isys=1,NSYSTOT)
      $           ,(OSyst(if2,isysOff),isysOff=1,NSYSOTOT)
          enddo
       endif
@@ -309,10 +317,50 @@ C------------------------------------------------------------
 
             write (55,1818)
      $           ,f2vave(if2)
-     $           ,(F2VaveSyst(if2,isys),isys=1,2*NSYSOTOT)
+     $           ,(F2VaveOSyst(if2,isys),isys=1,2*NSYSOTOT)
          enddo
 
       end subroutine
+
+
+      subroutine  outSystImpact()
+        implicit none
+        include 'common.inc'
+        integer isys, if2
+
+        open (55,file=trim(OutputFolder)//'/systimpact.dat',
+     $     status='unknown')
+
+         do if2=1,NMeas
+ 1818      format (200ES12.4)
+
+           write (55,1818)
+     $     ,f2vave(if2)
+     $     ,((F2VaveSyst(if2,2*isys)-F2VaveSyst(if2,2*isys-1))*0.5,
+     $     isys=1,NSYSTOT)
+         enddo
+
+      end subroutine
+
+      subroutine  outToyMCStat()
+        implicit none
+        include 'common.inc'
+        integer isys, if2
+
+        open (55,file=trim(OutputFolder)//'/toymcstat.dat',
+     $     status='unknown')
+
+         do if2=1,NMeas
+ 1818       format (200ES12.4)
+
+            write (55,1818)
+     $           ,f2vave(if2)
+     $           ,StatToyMC(if2)
+         enddo
+
+      end subroutine
+
+
 
 
 C     Calculate and write pulls for all input data vs average
@@ -409,7 +457,7 @@ C     ---------------------------------------------------------
           open (55,file=trim(OutputFolder)//'/sys.txt',status='unknown')
           do j=1,nsystot
               pull = 0
-              if(errsyst(j) .lt. 0.99999 )then
+              if(errsyst(j) .lt. 0.9999999 )then
                   pull = SYSSH(j) /
      $            sqrt(1 - errsyst(j)*errsyst(j))
               endif
@@ -427,8 +475,8 @@ C     Print the eigenvalues and eigenvectors
         implicit none
         include 'common.inc'
         integer isys1,isys2
-        real*8 WWW(NSYSTMAX)
-        real*8 Box3(NSYSTMAX,NSYSTMAX)
+        real*8 WWW(NSYSTot)
+        real*8 Box3(NSYSTot,NSYSTot)
 
          open (51,file=trim(OutputFolder)//'/eigvalues.dat',
      $       status='unknown')
